@@ -164,6 +164,7 @@ namespace Template
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\torch.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\sword.png", true, _samplerStates.TexturedFloor));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.TexturedFloor));
             _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
             // 6. Load meshes.
@@ -172,7 +173,8 @@ namespace Template
             _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
             _ceiling.MoveBy(0, 10, 0);
             AddCubes();
-            
+            _sword = loader.LoadMeshObject("Resources\\Models\\sword.txt", _materials);
+
             // 6. Load HUD resources into DirectX 2D object.
             InitHUDResources();
 
@@ -471,6 +473,20 @@ namespace Template
             _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
             _ceiling.Render();
 
+            float x = (float)(_character.Position.Z - 2 * Math.Cos(_camera.Pitch) * Math.Cos(_camera.Yaw));
+            float y = (float)(_character.Position.X - 2 * Math.Sin(_camera.Yaw) * Math.Cos(_camera.Pitch));
+            float z = (float)(_character.Position.Y + 2 * Math.Sin(_camera.Pitch));
+
+            _sword.Pitch = _camera.Pitch;
+            _sword.Yaw = _camera.Yaw - 0.3f;
+            _sword.Roll = _camera.Roll - 0.8f;
+            _sword.MoveTo(y, z-0.7f, x);
+            
+            
+            worldMatrix = _sword.GetWorldMatrix();
+            _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
+            _sword.Render();
+
             RenderHUD();
 
             _renderer.EndRender();
@@ -494,6 +510,7 @@ namespace Template
                 
             }
             Matrix3x2 armorTransformMatrix = Matrix3x2.Translation(new Vector2(_directX2DGraphics.RenderTargetClientRectangle.Right - armorWidthInDIP - 1, _directX2DGraphics.RenderTargetClientRectangle.Bottom - armorHeightInDIP - 1));
+            
             _directX2DGraphics.BeginDraw();
             _directX2DGraphics.DrawText(text, _HUDResources.textFPSTextFormatIndex,
                 _directX2DGraphics.RenderTargetClientRectangle, _HUDResources.textFPSBrushIndex);

@@ -222,6 +222,7 @@
     <Content Include="Resources\Textures\ceiling.png" />
     <Content Include="Resources\Textures\chest.png" />
     <Content Include="Resources\Textures\floor.png" />
+    <Content Include="Resources\Textures\sword.png" />
     <Content Include="Resources\Textures\torch.png" />
     <Content Include="Resources\Textures\wall.png" />
     <Content Include="Shaders\pixel.hlsl">
