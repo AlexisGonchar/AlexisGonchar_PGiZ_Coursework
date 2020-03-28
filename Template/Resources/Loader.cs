@@ -115,7 +115,7 @@ namespace Template
 
             Utilities.Dispose(ref imageFormatConverter);
 
-            fileName = fileName.Split('\\')[1];
+            fileName = fileName.Split('\\')[fileName.Split('\\').Count() - 1];
 
             return new Texture(textureObject, shaderResourceView, width, height, fileName, samplerState);
         }

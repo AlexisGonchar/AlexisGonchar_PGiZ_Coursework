@@ -83,6 +83,9 @@ namespace Template
         /// <value>F1 - F10 key press "event".</value>
         public bool[] Func { get => _func; }
 
+        private bool _mPressed;
+
+        public bool MPressed { get => _mPressed; }
 
         /// <summary>W current pressed state.</summary>
         private bool _wPressed;
@@ -235,6 +238,7 @@ namespace Template
             _aPressed = _keyboardState.IsPressed(Key.A);
             _sPressed = _keyboardState.IsPressed(Key.S);
             _dPressed = _keyboardState.IsPressed(Key.D);
+            _mPressed = _keyboardState.IsPressed(Key.M);
 
             // Space (typicaly jump) - by key down.
             _space = ProcessKeyPressTriggerByKeyDown(Key.Space, ref _spacePreviousPressed, ref _spaceCurrentPressed);

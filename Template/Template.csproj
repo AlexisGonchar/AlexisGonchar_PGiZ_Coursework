@@ -200,30 +200,30 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\ceiling.txt" />
-    <Content Include="Resources\chest.png" />
-    <Content Include="Resources\chest.txt" />
-    <Content Include="Resources\floor.png" />
-    <Content Include="Resources\floor.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Resources\Levels\level_1.bmp" />
-    <Content Include="Resources\materials.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\torch.png" />
-    <Content Include="Resources\torch.txt" />
-    <Content Include="Resources\wall.png" />
-    <Content Include="Resources\wall_x1.txt" />
-    <Content Include="Resources\wall_x10.txt" />
-    <Content Include="Resources\wall_x2.txt" />
-    <Content Include="Resources\wall_x3.txt" />
-    <Content Include="Resources\wall_x4.txt" />
-    <Content Include="Resources\wall_x5.txt" />
-    <Content Include="Resources\wall_x6.txt" />
-    <Content Include="Resources\wall_x7.txt" />
-    <Content Include="Resources\wall_x8.txt" />
-    <Content Include="Resources\wall_x9.txt" />
+    <Content Include="Resources\Levels\level_1_map.bmp" />
+    <Content Include="Resources\Models\ceiling.txt" />
+    <Content Include="Resources\Models\chest.txt" />
+    <Content Include="Resources\Models\floor.txt" />
+    <Content Include="Resources\Models\materials.txt" />
+    <Content Include="Resources\Models\sword.txt" />
+    <Content Include="Resources\Models\torch.txt" />
+    <Content Include="Resources\Models\Walls\wall_block.txt" />
+    <Content Include="Resources\Models\Walls\wall_x1.txt" />
+    <Content Include="Resources\Models\Walls\wall_x10.txt" />
+    <Content Include="Resources\Models\Walls\wall_x2.txt" />
+    <Content Include="Resources\Models\Walls\wall_x3.txt" />
+    <Content Include="Resources\Models\Walls\wall_x4.txt" />
+    <Content Include="Resources\Models\Walls\wall_x5.txt" />
+    <Content Include="Resources\Models\Walls\wall_x6.txt" />
+    <Content Include="Resources\Models\Walls\wall_x7.txt" />
+    <Content Include="Resources\Models\Walls\wall_x8.txt" />
+    <Content Include="Resources\Models\Walls\wall_x9.txt" />
+    <Content Include="Resources\Textures\ceiling.png" />
+    <Content Include="Resources\Textures\chest.png" />
+    <Content Include="Resources\Textures\floor.png" />
+    <Content Include="Resources\Textures\torch.png" />
+    <Content Include="Resources\Textures\wall.png" />
     <Content Include="Shaders\pixel.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -238,6 +238,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- Import Project="Template.Build.targets" / -->
 </Project>

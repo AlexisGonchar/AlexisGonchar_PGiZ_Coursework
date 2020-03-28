@@ -98,6 +98,8 @@ namespace Template
         private Character _character;
         private Vector4 prePos;
 
+        private MeshObject _sword;
+
         /// <summary>Camera object.</summary>
         private Camera _camera;
 
@@ -129,7 +131,7 @@ namespace Template
                 SharpDX.DirectWrite.FontStyle.Normal, SharpDX.DirectWrite.FontStretch.Normal, 12,
                 SharpDX.DirectWrite.TextAlignment.Leading, SharpDX.DirectWrite.ParagraphAlignment.Near);
             _HUDResources.textFPSBrushIndex = _directX2DGraphics.NewSolidColorBrush(new SharpDX.Mathematics.Interop.RawColor4(1.0f, 1.0f, 0.0f, 1.0f));
-            _HUDResources.armorIconIndex = _directX2DGraphics.LoadBitmapFromFile("Resources\\Levels\\level_1.bmp");  // Don't use before Resizing. Bitmaps loaded, but not created.
+            _HUDResources.armorIconIndex = _directX2DGraphics.LoadBitmapFromFile("Resources\\Levels\\level_1_map.bmp");  // Don't use before Resizing. Bitmaps loaded, but not created.
         }
 
         /// <summary>
@@ -157,19 +159,18 @@ namespace Template
             Loader loader = new Loader(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
             _samplerStates = new SamplerStates(_directX3DGraphics);
             _textures = new Textures();
-            _textures.Add(loader.LoadTextureFromFile("Resources\\floor.png", false, _samplerStates.TexturedFloor));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\floor.png", true, _samplerStates.TexturedFloor));
             _renderer.SetWhiteTexture(_textures["floor.png"]);
-            _textures.Add(loader.LoadTextureFromFile("Resources\\wall.png", true, _samplerStates.Textured));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\torch.png", true, _samplerStates.Textured));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\chest.png", true, _samplerStates.Textured));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\ceiling.png", true, _samplerStates.TexturedFloor));
-            _materials = loader.LoadMaterials("Resources\\materials.txt", _textures);
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\torch.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.TexturedFloor));
+            _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
             // 6. Load meshes.
             _meshObjects = new MeshObjects();
-            _floor = loader.LoadMeshObject("Resources\\floor.txt", _materials);
-            _ceiling = loader.LoadMeshObject("Resources\\ceiling.txt", _materials);
+            _floor = loader.LoadMeshObject("Resources\\Models\\floor.txt", _materials);
+            _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
             _ceiling.MoveBy(0, 10, 0);
-
             AddCubes();
             
             // 6. Load HUD resources into DirectX 2D object.
@@ -258,7 +259,7 @@ namespace Template
             }
             else
             {
-                m = loader.LoadMeshObject("Resources\\wall_x" + iter + ".txt", _materials);
+                m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_x" + iter + ".txt", _materials);
                 m.MoveBy((y - 100) * 2 + 1, 5, (x - 100) * 2 + iter);
                 x += iter - 1;
             }
@@ -285,15 +286,19 @@ namespace Template
                             m = AddWalls(loader, ref x, y, 1);
                             break;
                         case ColorBMP.Yellow:
-                            m = loader.LoadMeshObject("Resources\\torch.txt", _materials);
+                            m = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
                             m.MoveBy((y - 100) * 2 + 1, 6, (x - 100) * 2 + 1);
                             RotateTorch(m, bmp, x, y);
                             lightPositions.Add(new Vector4((y - 100) * 2, 6, (x - 100) * 2, 1));
                             break;
                         case ColorBMP.Grey:
-                            m = loader.LoadMeshObject("Resources\\chest.txt", _materials);
+                            m = loader.LoadMeshObject("Resources\\Models\\chest.txt", _materials);
                             m.MoveBy((y - 100) * 2 + 1, 1, (x - 100) * 2 + 1);
                             RotateChest(m, bmp, x, y);
+                            break;
+                        case ColorBMP.Green:
+                            m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_block.txt", _materials);
+                            m.MoveBy((y - 100) * 2 + 1, 9, (x - 100) * 2 + 1);
                             break;
                         default:
                             break;
@@ -480,9 +485,15 @@ namespace Template
                                 $"Pos: {_character.Position.X,6:f1}, {_character.Position.Y,6:f1}, {_character.Position.Z,6:f1}\n" +
                                 $"Count of Meshes: {countMeshes,6:f1}";
             if (_displayHelp) text += "\n\n" + _helpString;
-            float armorWidthInDIP = _directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Width;
-            float armorHeightInDIP = _directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Height;
-            Matrix3x2 armorTransformMatrix = Matrix3x2.Translation(new Vector2(_directX2DGraphics.RenderTargetClientRectangle.Right - armorWidthInDIP - 1, 1));
+            float armorWidthInDIP = -1;//_directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Width;
+            float armorHeightInDIP = -1;//_directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Height;
+            if (_inputController.MPressed)
+            {
+                armorWidthInDIP = ((_renderForm.Width - 600) / 2) + 600; //983;
+                armorHeightInDIP = ((_renderForm.Height - 600) / 2) + 600;
+                
+            }
+            Matrix3x2 armorTransformMatrix = Matrix3x2.Translation(new Vector2(_directX2DGraphics.RenderTargetClientRectangle.Right - armorWidthInDIP - 1, _directX2DGraphics.RenderTargetClientRectangle.Bottom - armorHeightInDIP - 1));
             _directX2DGraphics.BeginDraw();
             _directX2DGraphics.DrawText(text, _HUDResources.textFPSTextFormatIndex,
                 _directX2DGraphics.RenderTargetClientRectangle, _HUDResources.textFPSBrushIndex);
