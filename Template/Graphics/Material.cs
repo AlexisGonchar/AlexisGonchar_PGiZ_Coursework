@@ -8,7 +8,7 @@ using SharpDX;
 
 namespace Template.Graphics
 {
-    class Material
+    public class Material
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct MaterialDescription // For pixel shader (b0)

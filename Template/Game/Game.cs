@@ -16,7 +16,7 @@ using Template.Graphics;
 
 namespace Template
 {
-    class Game : IDisposable
+    public class Game : IDisposable
     {
         // TODO: Realize game state logic.
         ///// <summary>Game states.</summary>
@@ -99,6 +99,7 @@ namespace Template
         private Vector4 prePos;
 
         private MeshObject _sword;
+        private bool swordAnim = false;
 
         /// <summary>Camera object.</summary>
         private Camera _camera;
@@ -430,6 +431,7 @@ namespace Template
                 // Toggle fullscreen mode by F4, F5.
                 if (_inputController.Func[3]) _directX3DGraphics.IsFullScreen = false;
                 if (_inputController.Func[4]) _directX3DGraphics.IsFullScreen = true;
+                if (_inputController.MouseButtons[0]) swordAnim = true;
             }
 
             _viewMatrix = _camera.GetViewMatrix();
@@ -473,14 +475,29 @@ namespace Template
             _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
             _ceiling.Render();
 
-            float x = (float)(_character.Position.Z - 2 * Math.Cos(_camera.Pitch) * Math.Cos(_camera.Yaw));
-            float y = (float)(_character.Position.X - 2 * Math.Sin(_camera.Yaw) * Math.Cos(_camera.Pitch));
-            float z = (float)(_character.Position.Y + 2 * Math.Sin(_camera.Pitch));
+            //Меч
+            //Смещение меча вправо (+), влево (-)
+            float yaw = _camera.Yaw + 0.4f;
+            //Смещение меча вверх (+), вниз (-)
+            float pitch = _camera.Pitch - 0.4f;
+            if (!swordAnim)
+                pitch += Animations.SwordIdle() / 20.0f;
+            //Радиус сферы
+            float radius = 4;
 
-            _sword.Pitch = _camera.Pitch;
+            float x = (float)(_character.Position.Z - radius * Math.Cos(pitch) * Math.Cos(yaw));
+            float y = (float)(_character.Position.X - radius * Math.Sin(yaw) * Math.Cos(pitch));
+            float z = (float)(_character.Position.Y + radius * Math.Sin(pitch));
+
+            //
+            _sword.Pitch = _camera.Pitch + 1.0f;
+            //
             _sword.Yaw = _camera.Yaw - 0.3f;
-            _sword.Roll = _camera.Roll - 0.8f;
-            _sword.MoveTo(y, z-0.7f, x);
+            //
+            _sword.Roll = _camera.Roll - 1.5f;
+            _sword.MoveTo(y, z, x);
+            if(swordAnim)
+                swordAnim = Animations.ImpactBySword(_sword);
             
             
             worldMatrix = _sword.GetWorldMatrix();

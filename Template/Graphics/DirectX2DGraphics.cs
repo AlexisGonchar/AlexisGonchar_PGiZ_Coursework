@@ -28,7 +28,7 @@ namespace Template
     /// <para>And uses to perform drawing commands.</para>
     /// <para>You need call BeforeResizeSwapChain and AfterResizeSwapChain methods before render.</para>
     /// </remarks>
-    class DirectX2DGraphics : IDisposable
+    public class DirectX2DGraphics : IDisposable
     {
         /// <summary>DirectX 3D object.</summary>
         private DirectX3DGraphics _directX3DGraphics;

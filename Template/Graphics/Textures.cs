@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Template.Graphics
 {
-    class Textures : IDisposable
+    public class Textures : IDisposable
     {
         private List<Texture> _textures;
         public int Count { get => _textures.Count; }

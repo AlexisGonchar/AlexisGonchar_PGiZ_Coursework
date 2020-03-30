@@ -10,7 +10,7 @@ using SharpDX.WIC;
 
 namespace Template.Graphics
 {
-    class Texture : IDisposable
+    public class Texture : IDisposable
     {
         private Texture2D _textureObject;
         public Texture2D TextureObject { get => _textureObject; }

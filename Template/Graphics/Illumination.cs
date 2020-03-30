@@ -10,7 +10,7 @@ using Buffer11 = SharpDX.Direct3D11.Buffer;
 
 namespace Template.Graphics
 {
-    class Illumination
+    public class Illumination
     {
         public const int MaxLight = 8;
 

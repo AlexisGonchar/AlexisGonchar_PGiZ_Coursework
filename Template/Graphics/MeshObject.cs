@@ -16,7 +16,7 @@ namespace Template
     /// <summary>
     /// 3D object with mesh.
     /// </summary>
-    class MeshObject : Game3DObject, IDisposable
+    public class MeshObject : Game3DObject, IDisposable
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct VertexDataStruct

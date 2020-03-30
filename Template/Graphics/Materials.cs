@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Template.Graphics
 {
-    class Materials
+    public class Materials
     {
         private List<Material> _materials;
         public int Count { get => _materials.Count; }

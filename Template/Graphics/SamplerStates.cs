@@ -8,7 +8,7 @@ using SharpDX.Direct3D11;
 
 namespace Template.Graphics
 {
-    class SamplerStates : IDisposable
+    public class SamplerStates : IDisposable
     {
         private SamplerState _colored;
         public SamplerState Colored { get => _colored; }

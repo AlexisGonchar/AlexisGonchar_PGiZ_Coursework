@@ -8,7 +8,7 @@ using SharpDX;
 
 namespace Template.Graphics
 {
-    class LightSource
+    public class LightSource
     {
         public enum LightType
         {

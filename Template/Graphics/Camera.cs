@@ -7,7 +7,7 @@ using SharpDX;
 
 namespace Template
 {
-    class Camera : Game3DObject
+    public class Camera : Game3DObject
     {
         /// <summary>Field Of View angle in vertical plane.</summary>
         private float _fovY = _PI2 / 2.0f;

@@ -29,7 +29,7 @@ namespace Template
     /// <para>And uses for manipulation of buffers.</para>
     /// <para>You need call Resize method before render.</para>
     /// </remarks>
-    class DirectX3DGraphics : IDisposable
+    public class DirectX3DGraphics : IDisposable
     {
         /// <summary>Rendering mode: solid or wireframe.</summary>
         public enum RenderModes

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Template.Graphics
 {
-    class MeshObjects : IDisposable
+    public class MeshObjects : IDisposable
     {
         private List<MeshObject> _objects;
         public int Count { get => _objects.Count; }

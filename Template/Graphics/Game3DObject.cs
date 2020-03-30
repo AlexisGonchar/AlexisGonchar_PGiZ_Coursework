@@ -10,7 +10,7 @@ namespace Template
     /// <summary>
     /// Base 3D object with position and rotation.
     /// </summary>
-    class Game3DObject
+    public class Game3DObject
     {
         public static float _PI = (float)Math.PI;
         public static float _2PI = (float)Math.PI * 2.0f;
