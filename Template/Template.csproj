@@ -153,6 +153,8 @@
   <ItemGroup>
     <Compile Include="Game\Animations.cs" />
     <Compile Include="Game\ColorDetect.cs" />
+    <Compile Include="Game\GameField.cs" />
+    <Compile Include="Game\Wall.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Game\Character.cs" />
     <Compile Include="Graphics\DirectX2DGraphics.cs" />
@@ -206,6 +208,7 @@
     <Content Include="Resources\Models\ceiling.txt" />
     <Content Include="Resources\Models\chest.txt" />
     <Content Include="Resources\Models\floor.txt" />
+    <Content Include="Resources\Models\ghost.txt" />
     <Content Include="Resources\Models\materials.txt" />
     <Content Include="Resources\Models\sword.txt" />
     <Content Include="Resources\Models\torch.txt" />
@@ -223,6 +226,7 @@
     <Content Include="Resources\Textures\ceiling.png" />
     <Content Include="Resources\Textures\chest.png" />
     <Content Include="Resources\Textures\floor.png" />
+    <Content Include="Resources\Textures\ghost.png" />
     <Content Include="Resources\Textures\sword.png" />
     <Content Include="Resources\Textures\torch.png" />
     <Content Include="Resources\Textures\wall.png" />

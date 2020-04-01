@@ -25,6 +25,15 @@ specularPower:	90.0
 textured:		1
 texture:		wall.png
 
+name:			Ghost // textured
+emissive:		0.0		0.0		0.0		1.0
+ambient:		0.2		0.2		0.2		1.0
+diffuse:		0.3		0.3		0.3		1.0
+specular:		0.8		0.8		0.8		1.0
+specularPower:	90.0
+textured:		1
+texture:		ghost.png
+
 name:			Torch // textured
 emissive:		0.0		0.0		0.0		1.0
 ambient:		0.2		0.2		0.2		1.0

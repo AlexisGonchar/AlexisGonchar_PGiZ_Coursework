@@ -10,8 +10,9 @@ namespace Template
     /// <summary>
     /// Character object.
     /// </summary>
-    class Character : Game3DObject
+    public class Character : Game3DObject
     {
+        public BoundingBox BoxCollider;
         /// <summary>Speed of character movements.</summary>
         private float _speed;
         /// <summary>Speed of character movements.</summary>
@@ -28,6 +29,7 @@ namespace Template
         public Character(Vector4 initialPosition, float yaw = 0.0f, float pitch = 0.0f, float roll = 0.0f, float speed = 1.0f) :
             base(initialPosition, yaw, pitch, roll)
         {
+            BoxCollider = new BoundingBox();
             _speed = speed;
         }
         public void Crouch(float y)

@@ -58,7 +58,7 @@ namespace Template.Graphics
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Wrap,
                 MipLodBias = 0.0f,
-                MaximumAnisotropy = 2,
+                MaximumAnisotropy = 16,
                 ComparisonFunction = Comparison.Never,
                 BorderColor = new SharpDX.Mathematics.Interop.RawColor4(1.0f, 1.0f, 1.0f, 1.0f),
                 MinimumLod = 0,

@@ -92,6 +92,8 @@ namespace Template
         private bool _displayHelp;
         private string _helpString;
 
+        private GameField gameField;
+
         private int countMeshes;
 
         /// <summary>Character.</summary>
@@ -162,17 +164,19 @@ namespace Template
             _textures = new Textures();
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\floor.png", true, _samplerStates.TexturedFloor));
             _renderer.SetWhiteTexture(_textures["floor.png"]);
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.TexturedFloor));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\torch.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\sword.png", true, _samplerStates.TexturedFloor));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.TexturedFloor));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ghost.png", true, _samplerStates.Textured));
             _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
+            gameField = new GameField();
             // 6. Load meshes.
             _meshObjects = new MeshObjects();
             _floor = loader.LoadMeshObject("Resources\\Models\\floor.txt", _materials);
             _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
-            _ceiling.MoveBy(0, 10, 0);
+            _ceiling.MoveBy(0, 14, 0);
             AddCubes();
             _sword = loader.LoadMeshObject("Resources\\Models\\sword.txt", _materials);
 
@@ -253,20 +257,24 @@ namespace Template
                     1);
         }
 
-        public MeshObject AddWalls(Loader loader, ref int x, int y, int iter) 
+        public Wall AddWalls(Loader loader, ref int x, int y, int iter) 
         {
-            MeshObject m = null;
+            Wall wall = null;
             if (ColorDetect.Detect(bmp.GetPixel(x + iter, y)) == ColorBMP.Black && iter < 10)
             {
-                m = AddWalls(loader, ref x, y, iter + 1);
+                wall = AddWalls(loader, ref x, y, iter + 1);
             }
             else
             {
-                m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_x" + iter + ".txt", _materials);
-                m.MoveBy((y - 100) * 2 + 1, 5, (x - 100) * 2 + iter);
+                float wallX = (y - 100) * 2 + 1;
+                float wallZ = (x - 100) * 2 + iter;
+                MeshObject m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_x" + iter + ".txt", _materials);
+                m.MoveBy(wallX, 7, wallZ);
+                BoundingBox b = new BoundingBox(new Vector3(wallX - 1, 0, wallZ - iter), new Vector3(wallX + 1, 10, wallZ + iter));
+                wall = new Wall(m, b);
                 x += iter - 1;
             }
-            return m;
+            return wall;
         }
 
         public void AddCubes()
@@ -277,6 +285,7 @@ namespace Template
             lightPositions = new List<Vector4>();
             levelMap = new ColorBMP[bmp.Height, bmp.Width];
             ColorBMP color;
+            Wall wall;
             MeshObject m;
             for (int y = 0; y < bmp.Height; y++)
             {
@@ -286,7 +295,8 @@ namespace Template
                     color = ColorDetect.Detect(bmp.GetPixel(x, y));
                     switch (color){
                         case ColorBMP.Black:
-                            m = AddWalls(loader, ref x, y, 1);
+                            wall = AddWalls(loader, ref x, y, 1);
+                            gameField.AddWall(wall);
                             break;
                         case ColorBMP.Yellow:
                             m = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
@@ -301,7 +311,7 @@ namespace Template
                             break;
                         case ColorBMP.Green:
                             m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_block.txt", _materials);
-                            m.MoveBy((y - 100) * 2 + 1, 9, (x - 100) * 2 + 1);
+                            m.MoveBy((y - 100) * 2 + 1, 13, (x - 100) * 2 + 1);
                             break;
                         default:
                             break;
@@ -418,10 +428,7 @@ namespace Template
                 if (_inputController.SPressed) _character.MoveForwardBy(-_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.DPressed) _character.MoveRightBy(_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.APressed) _character.MoveRightBy(-_timeHelper.DeltaT * _character.Speed);
-                if (CheckCollision())
-                {
-                    _character.Position = prePos;
-                }
+                CollisionWalls();
                 if (_inputController.Esc) _renderForm.Close();                               // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 // Toggle help by F1.
                 if (_inputController.Func[0]) _displayHelp = !_displayHelp;
@@ -433,20 +440,21 @@ namespace Template
                 if (_inputController.Func[4]) _directX3DGraphics.IsFullScreen = true;
                 if (_inputController.MouseButtons[0]) swordAnim = true;
             }
-
+            
             _viewMatrix = _camera.GetViewMatrix();
-
+            countMeshes = 0;
             _renderer.BeginRender();
             initLight();
+            RenderWalls();
             _illumination.EyePosition = _camera.Position;
             //LightSource light2 = _illumination[2];
             //if (RandomUtil.NextFloat(_random, 0.0f, 1.0f) < 0.2f) light2.Enabled = (1 ==light2.Enabled ? 0 : 1);
             //_illumination[2] = light2;
             _renderer.UpdateIlluminationProperties(_illumination);
-
             _renderer.SetPerObjectConstants(_timeHelper.Time, 0);
             Matrix worldMatrix;
-            countMeshes = 0;
+            
+            
             for (int i = 0; i <= _meshObjects.Count - 1; i++)
             {
                 if (i > 0)
@@ -507,6 +515,50 @@ namespace Template
             RenderHUD();
 
             _renderer.EndRender();
+        }
+
+        private void RenderWalls()
+        {
+            int wallsCount = gameField.GetWallsCount();
+            Matrix worldMatrix;
+            double way;
+            for (int i = 0; i < wallsCount; i++)
+            {
+                Wall wall = gameField.GetWall(i);
+                MeshObject mesh = wall.Mesh;
+                way = Collision.DistanceBoxBox(ref wall.BoxCollider, ref _character.BoxCollider);
+                if (way < 100)
+                {
+                    countMeshes++;
+                    worldMatrix = mesh.GetWorldMatrix();
+                    _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
+                    mesh.Render();
+                }
+            }
+        }
+
+        private void CollisionWalls()
+        {
+            float x = _character.Position.X;
+            float z = _character.Position.Z;
+            float y = _character.Position.Y;
+            _character.BoxCollider.Minimum = new Vector3(x - 1, 0, z - 1);
+            _character.BoxCollider.Maximum = new Vector3(x + 1, y, z + 1);
+            int wallsCount = gameField.GetWallsCount();
+            double way;
+            for (int i = 0; i < wallsCount; i++)
+            {
+                Wall wall = gameField.GetWall(i);
+                MeshObject mesh = wall.Mesh;
+                way = Collision.DistanceBoxBox(ref wall.BoxCollider, ref _character.BoxCollider);
+                if (way < 10)
+                {
+                    if (gameField.CharachterWallCollision(_character, i))
+                    {
+                        _character.Position = prePos;
+                    }
+                }
+            }
         }
 
         /// <summary>Render HUD.</summary>
