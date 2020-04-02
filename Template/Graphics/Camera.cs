@@ -56,7 +56,7 @@ namespace Template
         /// <returns>Projection matrix.</returns>
         public Matrix GetProjectionMatrix()
         {
-            return Matrix.PerspectiveFovLH(_fovY, _aspect, 0.1f, 100.0f);
+            return Matrix.PerspectiveFovLH(_fovY, _aspect, 0.1f, 1000.0f);
         }
 
         /// <summary>Get view matrix.</summary>

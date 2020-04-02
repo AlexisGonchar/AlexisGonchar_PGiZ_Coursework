@@ -91,6 +91,9 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ParserFromObj">
+      <HintPath>..\packages\ParserFromObj.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpDX.4.2.0\lib\net45\SharpDX.dll</HintPath>
     </Reference>
@@ -152,9 +155,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Animations.cs" />
+    <Compile Include="Game\Chest.cs" />
     <Compile Include="Game\ColorDetect.cs" />
     <Compile Include="Game\GameField.cs" />
+    <Compile Include="Game\IModel.cs" />
     <Compile Include="Game\Wall.cs" />
+    <Compile Include="Game\Zombie.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Game\Character.cs" />
     <Compile Include="Graphics\DirectX2DGraphics.cs" />
@@ -176,6 +182,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Renderer.cs" />
+    <Compile Include="Resources\LoaderFromObj.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -198,6 +205,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Resources\Models\sword.obj" />
+    <None Include="Resources\Models\zombie.obj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -230,6 +239,7 @@
     <Content Include="Resources\Textures\sword.png" />
     <Content Include="Resources\Textures\torch.png" />
     <Content Include="Resources\Textures\wall.png" />
+    <Content Include="Resources\Textures\zombie.png" />
     <Content Include="Shaders\pixel.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

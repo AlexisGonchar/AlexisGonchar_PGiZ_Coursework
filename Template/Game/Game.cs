@@ -103,6 +103,8 @@ namespace Template
         private MeshObject _sword;
         private bool swordAnim = false;
 
+        private Zombie _zombie;
+        private Chest _chest;
         /// <summary>Camera object.</summary>
         private Camera _camera;
 
@@ -160,61 +162,34 @@ namespace Template
             _directX2DGraphics = new DirectX2DGraphics(_directX3DGraphics);
             // 5. Load materials
             Loader loader = new Loader(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
+            LoaderFromObj loaderFromObj = new LoaderFromObj(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
             _samplerStates = new SamplerStates(_directX3DGraphics);
             _textures = new Textures();
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\floor.png", true, _samplerStates.TexturedFloor));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\floor.png", true, _samplerStates.Textured));
             _renderer.SetWhiteTexture(_textures["floor.png"]);
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.TexturedFloor));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\wall.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\torch.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest.png", true, _samplerStates.Textured));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\sword.png", true, _samplerStates.TexturedFloor));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.TexturedFloor));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\sword.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\zombie.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ghost.png", true, _samplerStates.Textured));
             _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
             gameField = new GameField();
             // 6. Load meshes.
             _meshObjects = new MeshObjects();
+            _zombie = new Zombie(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\zombie.obj", _materials[7]));
+            _chest = new Chest(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\chest.obj", _materials[6]));
             _floor = loader.LoadMeshObject("Resources\\Models\\floor.txt", _materials);
             _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
             _ceiling.MoveBy(0, 14, 0);
             AddCubes();
-            _sword = loader.LoadMeshObject("Resources\\Models\\sword.txt", _materials);
+            _sword = loaderFromObj.LoadMeshesFromObject("Resources\\Models\\sword.obj", _materials[5])["swrod"];
 
             // 6. Load HUD resources into DirectX 2D object.
             InitHUDResources();
 
             loader = null;
-
-            _illumination = new Illumination(Vector4.Zero, new Vector4(1.0f, 1.0f, 0.9f, 1.0f), new LightSource[]
-            {
-                //new LightSource(LightSource.LightType.DirectionalLight,
-                //    new Vector4(0.0f, 20.0f, 0.0f, 1.0f),   // Position
-                //    new Vector4(0.0f, -1.0f, 0.0f, 1.0f),   // Direction
-                //    new Vector4(1.0f, 0.9f, 0.8f, 1.0f),    // Color
-                //    0.0f,                                   // Spot angle
-                //    1.0f,                                   // Const atten
-                //    0.0f,                                   // Linear atten
-                //    0.0f,                                   // Quadratic atten
-                //    1),
-                //new LightSource(LightSource.LightType.SpotLight,
-                //    new Vector4(0.0f, 8.0f, 0.0f, 1.0f),
-                //    new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
-                //    new Vector4(0.7f, 0.7f, 1.0f, 1.0f),
-                //    Game3DObject._PI2 / 4.0f,
-                //    1.0f,
-                //    0.02f,
-                //    0.005f,
-                //    1),
-                new LightSource(LightSource.LightType.PointLight,
-                    new Vector4(-4.0f, 4.0f, 0.0f, 1.0f),
-                    Vector4.Zero,
-                    new Vector4(1.0f, 1.0f, 1.0f, 1.0f),
-                    0.0f,
-                    0.2f,
-                    0.00002f,
-                    0.000f,
-                    1)
-            });
 
             // Character and camera. X0Z - ground, 0Y - to up.
             _character = new Character(new Vector4(0.0f, 6.0f, -12.0f, 1.0f), Game3DObject._PI, 0.0f, 0.0f, 8.0f); //********
@@ -238,7 +213,7 @@ namespace Template
                 l[i].Position = lightPositions[i];
             }
 
-            _illumination = new Illumination(Vector4.Zero, new Vector4(1.0f, 1.0f, 0.9f, 1.0f), new LightSource[]
+            _illumination = new Illumination(Vector4.Zero, new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new LightSource[]
             {
                 l[0], l[1], l[2], l[3]
             });
@@ -300,9 +275,9 @@ namespace Template
                             break;
                         case ColorBMP.Yellow:
                             m = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
-                            m.MoveBy((y - 100) * 2 + 1, 6, (x - 100) * 2 + 1);
+                            m.MoveBy((y - 100) * 2 + 1, 8, (x - 100) * 2 + 1);
                             RotateTorch(m, bmp, x, y);
-                            lightPositions.Add(new Vector4((y - 100) * 2, 6, (x - 100) * 2, 1));
+                            lightPositions.Add(new Vector4((y - 100) * 2, 8, (x - 100) * 2, 1));
                             break;
                         case ColorBMP.Grey:
                             m = loader.LoadMeshObject("Resources\\Models\\chest.txt", _materials);
@@ -447,12 +422,8 @@ namespace Template
             initLight();
             RenderWalls();
             _illumination.EyePosition = _camera.Position;
-            //LightSource light2 = _illumination[2];
-            //if (RandomUtil.NextFloat(_random, 0.0f, 1.0f) < 0.2f) light2.Enabled = (1 ==light2.Enabled ? 0 : 1);
-            //_illumination[2] = light2;
             _renderer.UpdateIlluminationProperties(_illumination);
             _renderer.SetPerObjectConstants(_timeHelper.Time, 0);
-            Matrix worldMatrix;
             
             
             for (int i = 0; i <= _meshObjects.Count - 1; i++)
@@ -465,9 +436,7 @@ namespace Template
                 if (Math.Sqrt(Math.Pow(_character.Position.X - meshObject.Position.X, 2) + Math.Pow(_character.Position.Z - meshObject.Position.Z, 2)) < 100)
                 {
                     countMeshes++;
-                    worldMatrix = meshObject.GetWorldMatrix();
-                    _renderer.UpdatePerObjectConstantBuffer(meshObject.Index, worldMatrix, _viewMatrix, _projectionMatrix);
-                    meshObject.Render();
+                    meshObject.Render(_renderer, _viewMatrix, _projectionMatrix);
                 }
             }
             float time = _timeHelper.Time;
@@ -476,12 +445,8 @@ namespace Template
             //_renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
             //_cube.Render();
             //_renderer.SetPerObjectConstants(time, 0);
-            worldMatrix = _floor.GetWorldMatrix();
-            _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
-            _floor.Render();
-            worldMatrix = _ceiling.GetWorldMatrix();
-            _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
-            _ceiling.Render();
+            _floor.Render(_renderer, _viewMatrix, _projectionMatrix);
+            _ceiling.Render(_renderer, _viewMatrix, _projectionMatrix);
 
             //Меч
             //Смещение меча вправо (+), влево (-)
@@ -507,10 +472,13 @@ namespace Template
             if(swordAnim)
                 swordAnim = Animations.ImpactBySword(_sword);
             
-            
-            worldMatrix = _sword.GetWorldMatrix();
-            _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
-            _sword.Render();
+            _sword.Render(_renderer, _viewMatrix, _projectionMatrix);
+
+            _zombie.Render(_renderer, _viewMatrix, _projectionMatrix);
+            _zombie.Walk();
+            _zombie.RotateToPlayer(_camera);
+
+            //_chest.Render(_renderer, _viewMatrix, _projectionMatrix);
 
             RenderHUD();
 
@@ -520,19 +488,16 @@ namespace Template
         private void RenderWalls()
         {
             int wallsCount = gameField.GetWallsCount();
-            Matrix worldMatrix;
             double way;
             for (int i = 0; i < wallsCount; i++)
             {
                 Wall wall = gameField.GetWall(i);
                 MeshObject mesh = wall.Mesh;
                 way = Collision.DistanceBoxBox(ref wall.BoxCollider, ref _character.BoxCollider);
-                if (way < 100)
+                if (way < 200)
                 {
                     countMeshes++;
-                    worldMatrix = mesh.GetWorldMatrix();
-                    _renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
-                    mesh.Render();
+                    mesh.Render(_renderer, _viewMatrix, _projectionMatrix);
                 }
             }
         }

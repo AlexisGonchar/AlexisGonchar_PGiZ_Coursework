@@ -53,7 +53,7 @@ namespace Template.Graphics
 
             samplerStateDescription = new SamplerStateDescription
             {
-                Filter = Filter.Anisotropic,
+                Filter = Filter.ComparisonMinMagMipLinear,
                 AddressU = TextureAddressMode.Wrap,
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Wrap,

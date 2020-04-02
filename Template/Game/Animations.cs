@@ -12,6 +12,7 @@ namespace Template
         private static bool swordAnimAge1 = true;
         private static bool swordAnimAge2 = false;
         private static bool swordAnimAge3 = false;
+        private static bool zombieWalk = true;
 
         private static float x = 0;
 
@@ -67,6 +68,31 @@ namespace Template
                 x = 0;
             }
             return (float) Math.Sin(x);
+        }
+
+        public static void ZombieWalk(MeshObject legLeft, MeshObject legRight)
+        {
+            float angle = 0.8f;
+            float speed = 0.05f;
+            if (zombieWalk && legRight.Pitch < angle)
+            {
+                legLeft.Pitch -= speed;
+                legRight.Pitch += speed;
+            }
+            else
+            {
+                zombieWalk = false;
+            }
+            
+            if(!zombieWalk && legRight.Pitch > -angle)
+            {
+                legLeft.Pitch += speed;
+                legRight.Pitch -= speed;
+            }
+            else
+            {
+                zombieWalk = true;
+            }
         }
     }
 }
