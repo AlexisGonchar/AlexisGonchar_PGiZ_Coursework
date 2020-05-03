@@ -13,6 +13,7 @@ using SharpDX.Direct3D11;
 using SharpDX.Windows;
 using Template.Properties; // For work with resources of project Assembly.Properties. Then we can access to all inside Resorces.resx.
 using Template.Graphics;
+using SharpHelper.Audio;
 
 namespace Template
 {
@@ -101,10 +102,12 @@ namespace Template
         private Vector4 prePos;
 
         private MeshObject _sword;
+        private MeshObject _torch;
+        private MeshObject _torch1;
+        private MeshObject _torch2;
         private bool swordAnim = false;
 
         private Zombie _zombie;
-        private Chest _chest;
         /// <summary>Camera object.</summary>
         private Camera _camera;
 
@@ -123,7 +126,9 @@ namespace Template
         /// <summary>Time helper object for current time and delta time measurements.</summary>
         private TimeHelper _timeHelper;
 
-        private Random _random;
+        SharpAudioDevice device = new SharpAudioDevice();
+        SharpAudioVoice voice;
+
 
         /// <summary>First run flag for create DirectX buffers before render in first time.</summary>
         private bool _firstRun = true;
@@ -173,18 +178,21 @@ namespace Template
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\sword.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\zombie.png", true, _samplerStates.Textured));
-            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ghost.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest_over.png", true, _samplerStates.Textured));
             _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
             gameField = new GameField();
             // 6. Load meshes.
             _meshObjects = new MeshObjects();
+
             _zombie = new Zombie(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\zombie.obj", _materials[7]));
-            _chest = new Chest(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\chest.obj", _materials[6]));
             _floor = loader.LoadMeshObject("Resources\\Models\\floor.txt", _materials);
             _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
             _ceiling.MoveBy(0, 14, 0);
             AddCubes();
             _sword = loaderFromObj.LoadMeshesFromObject("Resources\\Models\\sword.obj", _materials[5])["swrod"];
+            _torch = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
+            _torch1 = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
+            _torch2 = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
 
             // 6. Load HUD resources into DirectX 2D object.
             InitHUDResources();
@@ -192,14 +200,17 @@ namespace Template
             loader = null;
 
             // Character and camera. X0Z - ground, 0Y - to up.
-            _character = new Character(new Vector4(0.0f, 6.0f, -12.0f, 1.0f), Game3DObject._PI, 0.0f, 0.0f, 8.0f); //********
+            _character = new Character(new Vector4(0.0f, 6.0f, -12.0f, 1.0f), Game3DObject._PI, 0.0f, 0.0f, 12.0f); //********
             _camera = new Camera(new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             _camera.AttachToObject(_character);
 
             // Input controller and time helper.
             _inputController = new InputController(_renderForm);
             _timeHelper = new TimeHelper();
-            _random = new Random();
+
+            voice = new SharpAudioVoice(device, "Resources\\Audio\\bg.wav");
+            voice.Voice.SetVolume(0.3f);
+            voice.Play();
         }
 
         public void initLight()
@@ -255,6 +266,7 @@ namespace Template
         public void AddCubes()
         {
             Loader loader = new Loader(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
+            LoaderFromObj loaderFromObj = new LoaderFromObj(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
             string filePath = @"Resources\Levels\level_1.bmp";
             bmp = new System.Drawing.Bitmap(filePath);
             lightPositions = new List<Vector4>();
@@ -280,9 +292,13 @@ namespace Template
                             lightPositions.Add(new Vector4((y - 100) * 2, 8, (x - 100) * 2, 1));
                             break;
                         case ColorBMP.Grey:
-                            m = loader.LoadMeshObject("Resources\\Models\\chest.txt", _materials);
-                            m.MoveBy((y - 100) * 2 + 1, 1, (x - 100) * 2 + 1);
-                            RotateChest(m, bmp, x, y);
+                            Vector3 min = new Vector3((y - 100) * 2, 0.45f, (x - 100) * 2);
+                            Vector3 max = new Vector3((y - 100) * 2 + 2, 2.45f, (x - 100) * 2 + 2);
+                            BoundingBox box = new BoundingBox(min, max);
+                            Chest chest = new Chest(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\chest.obj", _materials[6]), box);
+                            chest.MoveBy((y - 100) * 2 + 1, 1, (x - 100) * 2 + 1);
+                            chest.RotateChestToWall(bmp, x, y);
+                            gameField.chests.Add(chest);
                             break;
                         case ColorBMP.Green:
                             m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_block.txt", _materials);
@@ -298,16 +314,6 @@ namespace Template
                     }
                 }
             }
-        }
-
-        public void RotateChest(MeshObject m, System.Drawing.Bitmap bmp, int x, int y)
-        {
-            if (ColorDetect.Detect(bmp.GetPixel(x - 1, y)) == ColorBMP.Black)
-                m.Yaw = (float)Math.PI;
-            if (ColorDetect.Detect(bmp.GetPixel(x, y + 1)) == ColorBMP.Black)
-                m.Yaw = (float)Math.PI / 2;
-            if (ColorDetect.Detect(bmp.GetPixel(x, y - 1)) == ColorBMP.Black)
-                m.Yaw = (float)-Math.PI / 2;
         }
 
         public void RotateTorch(MeshObject m, System.Drawing.Bitmap bmp, int x, int y)
@@ -396,15 +402,21 @@ namespace Template
             {
                 prePos = _character.Position;
                 _character.Speed = 24;
-                if (_inputController.ShiftPressed) _character.Speed /= 3;
+                if (_inputController.ShiftPressed) _character.Speed *= 3;
                 _character.Crouch(6);
                 if (_inputController.ControlPressed) _character.Crouch(3);     
                 if (_inputController.WPressed) _character.MoveForwardBy(_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.SPressed) _character.MoveForwardBy(-_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.DPressed) _character.MoveRightBy(_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.APressed) _character.MoveRightBy(-_timeHelper.DeltaT * _character.Speed);
+                _character.BoundingsMove(_camera);
                 CollisionWalls();
-                if (_inputController.Esc) _renderForm.Close();                               // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+                if (_inputController.Esc) 
+                {
+                    _renderForm.Close();
+                    voice.Stop();
+                }
                 // Toggle help by F1.
                 if (_inputController.Func[0]) _displayHelp = !_displayHelp;
                 // Switch solid and wireframe modes by F2, F3.
@@ -415,12 +427,13 @@ namespace Template
                 if (_inputController.Func[4]) _directX3DGraphics.IsFullScreen = true;
                 if (_inputController.MouseButtons[0]) swordAnim = true;
             }
-            
+            CollisionChests();
             _viewMatrix = _camera.GetViewMatrix();
             countMeshes = 0;
             _renderer.BeginRender();
             initLight();
             RenderWalls();
+            RenderChests();
             _illumination.EyePosition = _camera.Position;
             _renderer.UpdateIlluminationProperties(_illumination);
             _renderer.SetPerObjectConstants(_timeHelper.Time, 0);
@@ -471,14 +484,17 @@ namespace Template
             _sword.MoveTo(y, z, x);
             if(swordAnim)
                 swordAnim = Animations.ImpactBySword(_sword);
-            
+
             _sword.Render(_renderer, _viewMatrix, _projectionMatrix);
+
+            _torch.Position = new Vector4(_character.ray.Position.X, _character.ray.Position.Y, _character.ray.Position.Z, 0);
+            _torch.Render(_renderer, _viewMatrix, _projectionMatrix);
+            _torch1.Render(_renderer, _viewMatrix, _projectionMatrix);
+            _torch2.Render(_renderer, _viewMatrix, _projectionMatrix);
 
             _zombie.Render(_renderer, _viewMatrix, _projectionMatrix);
             _zombie.Walk();
-            _zombie.RotateToPlayer(_camera);
-
-            //_chest.Render(_renderer, _viewMatrix, _projectionMatrix);
+            _zombie.RotateToPlayer(_character);
 
             RenderHUD();
 
@@ -502,13 +518,40 @@ namespace Template
             }
         }
 
+        private void RenderChests()
+        {
+            double way;
+            foreach(Chest chest in gameField.chests)
+            {
+                way = Collision.DistanceBoxBox(ref chest.BoxCollider, ref _character.BoxCollider);
+                if (way < 200)
+                {
+                    chest.Render(_renderer, _viewMatrix, _projectionMatrix);
+                }
+            }
+        }
+
+        private void CollisionChests()
+        {
+            double way;
+            foreach (Chest chest in gameField.chests)
+            {
+                way = Collision.DistanceBoxBox(ref chest.BoxCollider, ref _character.BoxCollider);
+                if (way < 8)
+                {
+                    float d;
+                    _torch1.Position = new Vector4(chest.BoxCollider.Minimum.X, chest.BoxCollider.Minimum.Y, chest.BoxCollider.Minimum.Z, 0);
+                    _torch2.Position = new Vector4(chest.BoxCollider.Maximum.X, chest.BoxCollider.Maximum.Y, chest.BoxCollider.Maximum.Z, 0);
+                    if (chest.BoxCollider.Intersects(ref _character.ray))
+                    {
+                        chest.SetOver(_materials);
+                    }
+                }
+            }
+        }
+
         private void CollisionWalls()
         {
-            float x = _character.Position.X;
-            float z = _character.Position.Z;
-            float y = _character.Position.Y;
-            _character.BoxCollider.Minimum = new Vector3(x - 1, 0, z - 1);
-            _character.BoxCollider.Maximum = new Vector3(x + 1, y, z + 1);
             int wallsCount = gameField.GetWallsCount();
             double way;
             for (int i = 0; i < wallsCount; i++)
@@ -518,7 +561,7 @@ namespace Template
                 way = Collision.DistanceBoxBox(ref wall.BoxCollider, ref _character.BoxCollider);
                 if (way < 10)
                 {
-                    if (gameField.CharachterWallCollision(_character, i))
+                    if (wall.CharacterCollision(_character))
                     {
                         _character.Position = prePos;
                     }
@@ -569,6 +612,7 @@ namespace Template
             _renderer.Dispose();
             _directX3DGraphics.Dispose();
             _renderForm.Dispose();
+            voice.Dispose();
         }
     }
 }

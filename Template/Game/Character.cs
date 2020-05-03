@@ -13,6 +13,7 @@ namespace Template
     public class Character : Game3DObject
     {
         public BoundingBox BoxCollider;
+        public Ray ray;
         /// <summary>Speed of character movements.</summary>
         private float _speed;
         /// <summary>Speed of character movements.</summary>
@@ -30,6 +31,7 @@ namespace Template
             base(initialPosition, yaw, pitch, roll)
         {
             BoxCollider = new BoundingBox();
+            ray = new Ray();
             _speed = speed;
         }
         public void Crouch(float y)
@@ -67,6 +69,27 @@ namespace Template
         /// <param name="deltaRoll">Angle, rad.</param>
         public override void RollBy(float deltaRoll)
         {
+        }
+
+        public void BoundingsMove(Camera camera)
+        {
+            float x = Position.X;
+            float z = Position.Z;
+            float y = Position.Y;
+            BoxCollider.Minimum = new Vector3(x - 1, 0, z - 1);
+            BoxCollider.Maximum = new Vector3(x + 1, y, z + 1);
+
+            float yaw = camera.Yaw;
+            float pitch = camera.Pitch;
+            //Радиус сферы
+            float radius = 6f;
+
+            x = (float)(camera.Position.Z - radius * Math.Cos(pitch) * Math.Cos(yaw));
+            y = (float)(camera.Position.X - radius * Math.Sin(yaw) * Math.Cos(pitch));
+            z = (float)(camera.Position.Y + radius * Math.Sin(pitch));
+
+            ray.Position = new Vector3(y, z, x);
+            ray.Direction = new Vector3(camera.Position.X, camera.Position.Y, camera.Position.Z);
         }
     }
 }

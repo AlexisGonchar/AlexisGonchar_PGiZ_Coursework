@@ -1,18 +1,18 @@
 ﻿name:			Floor // magenta, plastic
 emissive:		0.0		0.0		0.0		1.0
-ambient:		0.5		0.5		0.5		1.0
-diffuse:		1.0		0.2		1.0		1.0
-specular:		0.5		0.2		0.5		1.0
-specularPower:	10.0
+ambient:		0.2		0.2		0.2		1.0
+diffuse:		0.3		0.3		0.3		1.0
+specular:		0.8		0.8		0.8		1.0
+specularPower:	90.0
 textured:		1
 texture:		floor.png
 
 name:			Ceiling // magenta, plastic
 emissive:		0.0		0.0		0.0		1.0
-ambient:		0.5		0.5		0.5		1.0
-diffuse:		1.0		0.2		1.0		1.0
-specular:		0.5		0.2		0.5		1.0
-specularPower:	10.0
+ambient:		0.2		0.2		0.2		1.0
+diffuse:		0.3		0.3		0.3		1.0
+specular:		0.8		0.8		0.8		1.0
+specularPower:	90.0
 textured:		1
 texture:		ceiling.png
 
@@ -69,3 +69,12 @@ specular:		0.8		0.8		0.8		1.0
 specularPower:	90.0
 textured:		1
 texture:		zombie.png
+
+name:			ChestOver // textured
+emissive:		0.0		0.0		0.0		1.0
+ambient:		0.2		0.2		0.2		1.0
+diffuse:		0.3		0.3		0.3		1.0
+specular:		0.8		0.8		0.8		1.0
+specularPower:	90.0
+textured:		1
+texture:		chest_over.png

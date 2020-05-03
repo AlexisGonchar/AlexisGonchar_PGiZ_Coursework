@@ -59,7 +59,7 @@ namespace Template
         private Buffer11 _indexBufferObject;
         #endregion
 
-        private Material _material;
+        public Material _material;
 
         /// <summary>
         /// Constructor.

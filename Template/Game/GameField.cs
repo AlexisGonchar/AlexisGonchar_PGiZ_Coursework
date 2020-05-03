@@ -10,10 +10,14 @@ namespace Template
     public class GameField
     {
         private List<Wall> _walls;
+        public List<Zombie> zombies;
+        public List<Chest> chests;
 
         public GameField()
         {
             _walls = new List<Wall>();
+            zombies = new List<Zombie>();
+            chests = new List<Chest>();
         }
 
         public void AddWall(Wall wall)
@@ -29,12 +33,6 @@ namespace Template
         public int GetWallsCount()
         {
             return _walls.Count();
-        }
-
-        public bool CharachterWallCollision(Character character, int wallIndex)
-        {
-            bool collision = Collision.BoxIntersectsBox(ref _walls[wallIndex].BoxCollider, ref character.BoxCollider);
-            return collision;
         }
     }
 }

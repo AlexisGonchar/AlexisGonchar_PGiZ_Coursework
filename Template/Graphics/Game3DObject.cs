@@ -56,7 +56,7 @@ namespace Template
         /// Consructor. Sets initial position and rotation. Order of applying rotation: 1) Roll (z), 2) Pitch (x), 3) Yaw (y).
         /// </summary>
         /// <param name="initialPosition">Initial position of object in world.</param>
-        /// <param name="yaw">Initial angle of rotation around 0Y axis (x - to left, y - to up, z - to back), rad.</param>
+        /// <param name="yaw">Initial angle of rotation around 0Y axis (x - to left, D:\Lerning\Semester6\PGiZ\Kursach\Ancient Dungeons\Template\Graphics\Game3DObject.csy - to up, z - to back), rad.</param>
         /// <param name="pitch">Initial angle of rotation around 0X axis (x - to left, y - to up, z - to back), rad.</param>
         /// <param name="roll">Initial rotation around 0Z axis (x - to left, y - to up, z - to back), rad.</param>
         public Game3DObject(Vector4 initialPosition, float yaw = 0.0f, float pitch = 0.0f, float roll = 0.0f)

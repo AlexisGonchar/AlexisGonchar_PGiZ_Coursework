@@ -18,21 +18,21 @@ namespace Template
 
         public static bool ImpactBySword(MeshObject sword)
         {
-            if (angle < 0.8f && swordAnimAge1 && !swordAnimAge2)
+            if (angle < 1.0f && swordAnimAge1 && !swordAnimAge2)
             {
                 sword.Pitch += angle;
-                angle += 0.03f;
+                angle += 0.06f;
                 return true;
             }
-            else  if(angle > 0.8f && swordAnimAge1 && !swordAnimAge2)
+            else  if(angle > 1.0f && swordAnimAge1 && !swordAnimAge2)
             {
                 swordAnimAge1 = false;
                 swordAnimAge2 = true;
             } 
-            if(angle > -1.0f && !swordAnimAge1 && swordAnimAge2)
+            if(angle > -1.1f && !swordAnimAge1 && swordAnimAge2)
             {
                 sword.Pitch += angle;
-                angle -= 0.08f;
+                angle -= 0.12f;
                 return true;
             }
             else
@@ -43,7 +43,7 @@ namespace Template
             if (angle < 0 && !swordAnimAge1 && !swordAnimAge2 && swordAnimAge3)
             {
                 sword.Pitch += angle;
-                angle += 0.12f;
+                angle += 0.15f;
                 return true;
             }
             else if (angle > 0 && !swordAnimAge1 && !swordAnimAge2 && swordAnimAge3)
