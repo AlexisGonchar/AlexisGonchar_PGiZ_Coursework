@@ -15,7 +15,7 @@ using Template.Graphics;
 namespace Template
 {
     /// <summary>Load objects data from text files, material libraries from text files, textures from images.</summary>
-    class Loader
+    public class Loader
     {
         private DirectX3DGraphics _directX3DGraphics;
         private DirectX2DGraphics _directX2DGraphics;
@@ -115,7 +115,7 @@ namespace Template
 
             Utilities.Dispose(ref imageFormatConverter);
 
-            fileName = fileName.Split('\\')[1];
+            fileName = fileName.Split('\\')[fileName.Split('\\').Count() - 1];
 
             return new Texture(textureObject, shaderResourceView, width, height, fileName, samplerState);
         }
@@ -123,7 +123,7 @@ namespace Template
         public Materials LoadMaterials(string materialFileName, Textures textures)
         {
             Materials materials = new Materials();
-            
+
             string materialName = null;
             Vector4 emissive;
             Vector4 ambient;
@@ -134,7 +134,8 @@ namespace Template
             string textureName = null;
 
             StreamReader reader = File.OpenText(materialFileName);
-            while (!reader.EndOfStream) {
+            while (!reader.EndOfStream)
+            {
                 string str = NormalizeStringAndRemoveComment(reader.ReadLine());
                 if (0 == str.IndexOf("name:"))
                 {
