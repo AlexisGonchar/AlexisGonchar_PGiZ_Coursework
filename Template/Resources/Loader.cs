@@ -15,7 +15,7 @@ using Template.Graphics;
 namespace Template
 {
     /// <summary>Load objects data from text files, material libraries from text files, textures from images.</summary>
-    public class Loader
+    class Loader
     {
         private DirectX3DGraphics _directX3DGraphics;
         private DirectX2DGraphics _directX2DGraphics;
@@ -115,7 +115,7 @@ namespace Template
 
             Utilities.Dispose(ref imageFormatConverter);
 
-            fileName = fileName.Split('\\')[fileName.Split('\\').Count() - 1];
+            fileName = fileName.Split('\\')[1];
 
             return new Texture(textureObject, shaderResourceView, width, height, fileName, samplerState);
         }
