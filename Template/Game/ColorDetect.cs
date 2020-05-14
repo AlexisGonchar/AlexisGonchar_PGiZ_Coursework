@@ -12,7 +12,8 @@ namespace Template
         Yellow,
         Grey,
         Green,
-        White
+        White,
+        Red
     }
     public static class ColorDetect
     {
@@ -26,6 +27,8 @@ namespace Template
                 return ColorBMP.Grey;
             if (c.R == 0 && c.G == 255 && c.B == 0)
                 return ColorBMP.Green;
+            if (c.R == 255 && c.G == 0 && c.B == 0)
+                return ColorBMP.Red;
             return ColorBMP.White;
         }
     }

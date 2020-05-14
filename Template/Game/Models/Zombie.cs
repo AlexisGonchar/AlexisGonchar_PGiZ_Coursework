@@ -1,4 +1,6 @@
 ﻿using SharpDX;
+using SharpDX.Direct3D9;
+using SharpHelper.Audio;
 using System;
 using System.Collections.Generic;
 
@@ -7,17 +9,36 @@ namespace Template
     public class Zombie : IModel
     {
         public Dictionary<String, MeshObject> MeshObjects;
-        public Zombie(Dictionary<String, MeshObject> meshes)
+        public BoundingBox BoxCollider;
+        public int Health;
+        public SharpAudioVoice damageSound;
+        public bool damage;
+
+        public int KickReaload = 0;
+
+        public Zombie(Dictionary<String, MeshObject> meshes, SharpAudioDevice device)
         {
+            Health = 3;
             MeshObjects = meshes;
             ZombieUp();
+            KickReaload = 0;
+            BoxCollider = new BoundingBox();
+            damageSound = new SharpAudioVoice(device, "Resources\\Audio\\damage.wav");
         }
 
         private void ZombieUp()
         {
             foreach (MeshObject meshObject in MeshObjects.Values)
             {
-                meshObject.MoveBy(0, 2.6f, 0);
+                meshObject.MoveBy(0, 2.122f, 0);
+            }
+        }
+
+        public void MoveTo(Vector4 v)
+        {
+            foreach (MeshObject meshObject in MeshObjects.Values)
+            {
+                meshObject.Position = v;
             }
         }
 
@@ -36,6 +57,13 @@ namespace Template
             float magnitude = (float)Math.Sqrt(a.X * a.X + a.Z * a.Z);
             if (magnitude <= 6f)
             {
+                if(KickReaload == 0)
+                {
+                    c.Health--;
+                    KickReaload = 50;
+                    damage = true;
+                }
+                    
                 tV = zombie.Position;
             }
             else
@@ -46,6 +74,8 @@ namespace Template
             {
                 meshObject.Yaw = (float)angle;
                 meshObject.MoveTo(tV.X, meshObject.Position.Y, tV.Z);
+                BoxCollider.Maximum = new Vector3(tV.X + 1, BoxCollider.Maximum.Y, tV.Z + 1);
+                BoxCollider.Minimum = new Vector3(tV.X - 1, BoxCollider.Minimum.Y, tV.Z - 1);
             }
         }
 

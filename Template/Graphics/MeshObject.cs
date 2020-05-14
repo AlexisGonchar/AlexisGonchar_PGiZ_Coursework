@@ -40,10 +40,10 @@ namespace Template
 
         #region Vertices and Indexes
         /// <summary>Count of object vertices.</summary>
-        private int _verticesCount;
+        public int _verticesCount;
 
         /// <summary>Array of vertex data.</summary>
-        private VertexDataStruct[] _vertices;
+        public VertexDataStruct[] _vertices;
 
         /// <summary>Vertex buffer DirectX object.</summary>
         private Buffer11 _vertexBufferObject;

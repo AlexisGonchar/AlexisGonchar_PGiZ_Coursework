@@ -14,6 +14,8 @@ namespace Template
     {
         public BoundingBox BoxCollider;
         public Ray ray;
+        public int SpeedAttack = 0;
+        public int Health = 5;
         /// <summary>Speed of character movements.</summary>
         private float _speed;
         /// <summary>Speed of character movements.</summary>
@@ -71,7 +73,7 @@ namespace Template
         {
         }
 
-        public void BoundingsMove(Camera camera)
+        public void BoundingsMove()
         {
             float x = Position.X;
             float z = Position.Z;
@@ -79,17 +81,23 @@ namespace Template
             BoxCollider.Minimum = new Vector3(x - 1, 0, z - 1);
             BoxCollider.Maximum = new Vector3(x + 1, y, z + 1);
 
-            float yaw = camera.Yaw;
-            float pitch = camera.Pitch;
+            float yaw = Yaw;
+            float pitch = Pitch;
             //Радиус сферы
-            float radius = 6f;
+            float radius = 10f;
 
-            x = (float)(camera.Position.Z - radius * Math.Cos(pitch) * Math.Cos(yaw));
-            y = (float)(camera.Position.X - radius * Math.Sin(yaw) * Math.Cos(pitch));
-            z = (float)(camera.Position.Y + radius * Math.Sin(pitch));
+            x = (float)(Position.Z - radius * Math.Cos(pitch) * Math.Cos(yaw));
+            y = (float)(Position.X - radius * Math.Sin(yaw) * Math.Cos(pitch));
+            z = (float)(Position.Y + radius * Math.Sin(pitch));
 
-            ray.Position = new Vector3(y, z, x);
-            ray.Direction = new Vector3(camera.Position.X, camera.Position.Y, camera.Position.Z);
+            Matrix rotation = Matrix.RotationYawPitchRoll(_yaw, _pitch, _roll);
+            Vector3 viewTo = (Vector3)Vector4.Transform(-Vector4.UnitZ, rotation);
+
+
+            ray.Position = new Vector3(Position.X, Position.Y, Position.Z);
+            ray.Direction = viewTo;
+            //ray.Direction = new Vector3(Position.X, Position.Y, Position.Z);
+            //ray.Position = new Vector3(y, z, x);
         }
     }
 }

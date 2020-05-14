@@ -13,15 +13,28 @@ namespace Template
         private static bool swordAnimAge2 = false;
         private static bool swordAnimAge3 = false;
         private static bool zombieWalk = true;
+        private static float angleHeart = 0.0f;
+        private static int heartDir = 1;
 
         private static float x = 0;
 
-        public static bool ImpactBySword(MeshObject sword)
+        public static float RotateHearts()
+        {
+            if (angleHeart > 0.6f)
+                heartDir = -1;
+            else if (angleHeart < -0.6f)
+                heartDir = 1;
+            angleHeart += 0.01f * heartDir;
+
+            return angleHeart;
+        }
+
+        public static bool ImpactBySword(MeshObject sword, int speed)
         {
             if (angle < 1.0f && swordAnimAge1 && !swordAnimAge2)
             {
                 sword.Pitch += angle;
-                angle += 0.06f;
+                angle += 0.06f * speed;
                 return true;
             }
             else  if(angle > 1.0f && swordAnimAge1 && !swordAnimAge2)
@@ -32,7 +45,7 @@ namespace Template
             if(angle > -1.1f && !swordAnimAge1 && swordAnimAge2)
             {
                 sword.Pitch += angle;
-                angle -= 0.12f;
+                angle -= 0.12f * speed;
                 return true;
             }
             else
@@ -43,7 +56,7 @@ namespace Template
             if (angle < 0 && !swordAnimAge1 && !swordAnimAge2 && swordAnimAge3)
             {
                 sword.Pitch += angle;
-                angle += 0.15f;
+                angle += 0.15f * speed;
                 return true;
             }
             else if (angle > 0 && !swordAnimAge1 && !swordAnimAge2 && swordAnimAge3)
@@ -93,6 +106,13 @@ namespace Template
             {
                 zombieWalk = true;
             }
+        }
+
+        public static ChestState OpenChest(Chest chest)
+        {
+            MeshObject cover = chest.MeshObjects["Cover"];
+            cover.Pitch += 0.1f;
+            return cover.Pitch >= 1.0f ? ChestState.Open : ChestState.Openning;
         }
     }
 }

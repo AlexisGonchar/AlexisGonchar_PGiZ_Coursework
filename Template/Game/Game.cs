@@ -102,14 +102,21 @@ namespace Template
         private Vector4 prePos;
 
         private MeshObject _sword;
-        private MeshObject _torch;
-        private MeshObject _torch1;
-        private MeshObject _torch2;
         private bool swordAnim = false;
 
-        private Zombie _zombie;
+        private Chest targetChest;
+        
         /// <summary>Camera object.</summary>
         private Camera _camera;
+
+        HUDModel[] hearts;
+        HUDModel[] keys;
+        HUDModel[] shields;
+        MeshObject target;
+        Dictionary<Items, ItemChestModel> items;
+        ItemChestModel item;
+        MeshObject door, door2;
+        List<Wall> nearestWalls;
 
         /// <summary>Projection matrix.</summary>
         private Matrix _projectionMatrix;
@@ -127,7 +134,16 @@ namespace Template
         private TimeHelper _timeHelper;
 
         SharpAudioDevice device = new SharpAudioDevice();
-        SharpAudioVoice voice;
+        SharpAudioVoice voice, walkingSound, hitZombieSound, swordMissSound;
+
+        bool walk = false;
+        bool walkIsPlayed = false;
+
+        Random random;
+
+        int coinCount = 0;
+        int keyCount = 0;
+        int shieldCount = 0;
 
 
         /// <summary>First run flag for create DirectX buffers before render in first time.</summary>
@@ -149,6 +165,7 @@ namespace Template
         /// </summary>
         public Game()
         {
+            random = new Random();
             //_gameState = GameState.BeforeStart;
             _helpString = Resources.HelpString;
 
@@ -179,21 +196,52 @@ namespace Template
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\ceiling.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\zombie.png", true, _samplerStates.Textured));
             _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\chest_over.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\heart.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\key.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\coin.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\food.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\target.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\door.png", true, _samplerStates.Textured));
+            _textures.Add(loader.LoadTextureFromFile("Resources\\Textures\\shield.png", true, _samplerStates.Textured));
             _materials = loader.LoadMaterials("Resources\\Models\\materials.txt", _textures);
             gameField = new GameField();
+            nearestWalls = new List<Wall>();
             // 6. Load meshes.
             _meshObjects = new MeshObjects();
 
-            _zombie = new Zombie(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\zombie.obj", _materials[7]));
+            //_zombie = new Zombie(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\zombie.obj", _materials[7]));
             _floor = loader.LoadMeshObject("Resources\\Models\\floor.txt", _materials);
             _ceiling = loader.LoadMeshObject("Resources\\Models\\ceiling.txt", _materials);
             _ceiling.MoveBy(0, 14, 0);
             AddCubes();
+            ChestPuttingItems();
             _sword = loaderFromObj.LoadMeshesFromObject("Resources\\Models\\sword.obj", _materials[5])["swrod"];
-            _torch = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
-            _torch1 = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
-            _torch2 = loader.LoadMeshObject("Resources\\Models\\torch.txt", _materials);
 
+            hearts = new HUDModel[5];
+            for(int i = 0; i < 5; i++)
+            {
+                
+                hearts[i] = new HUDModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\heart.obj", _materials[9]));
+            }
+            keys = new HUDModel[5];
+            for (int i = 0; i < 5; i++)
+            {
+                
+                keys[i] = new HUDModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\key.obj", _materials[10]));
+            }
+            shields = new HUDModel[3];
+            for (int i = 0; i < 3; i++)
+            {
+
+                shields[i] = new HUDModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\shieldhud.obj", _materials[15]));
+            }
+            AddItemsModelInDictionary(loaderFromObj);
+            door = loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]);
+            door.MoveBy(0, 6f, 0);
+            door2 = loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]);
+            door2.MoveBy(6, 6f, 0);
+            door2.Yaw = (float)Math.PI;
+            target = loaderFromObj.LoadMeshFromObject("Resources\\Models\\target.obj", _materials[13]);
             // 6. Load HUD resources into DirectX 2D object.
             InitHUDResources();
 
@@ -209,7 +257,32 @@ namespace Template
             _timeHelper = new TimeHelper();
 
             voice = new SharpAudioVoice(device, "Resources\\Audio\\bg.wav");
+            walkingSound = new SharpAudioVoice(device, "Resources\\Audio\\walking.wav");
+            hitZombieSound = new SharpAudioVoice(device, "Resources\\Audio\\hitZombie.wav");
+            swordMissSound = new SharpAudioVoice(device, "Resources\\Audio\\miss.wav");
+            walkingSound.Stopped += OnStop;
             voice.Voice.SetVolume(0.3f);
+            voice.Stopped += OnStop;
+
+            voice.Play();
+            
+        }
+
+        private void AddItemsModelInDictionary(LoaderFromObj loaderFromObj)
+        {
+            items = new Dictionary<Items, ItemChestModel>();
+            item = new ItemChestModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\coin.obj", _materials[11]));
+            items.Add(Items.Coin, item);
+            item = new ItemChestModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\food.obj", _materials[12]));
+            items.Add(Items.Food, item);
+            item = new ItemChestModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\keyItem.obj", _materials[10]));
+            items.Add(Items.Key, item);
+            item = new ItemChestModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\shield.obj", _materials[15]));
+            items.Add(Items.Shield, item);
+        }
+
+        private void OnStop(SharpAudioVoice voice)
+        {
             voice.Play();
         }
 
@@ -263,6 +336,49 @@ namespace Template
             return wall;
         }
 
+        void ChestPuttingItems()
+        {
+            foreach(Chest chest in gameField.chests)
+            {
+                chest.Item = Items.None;
+            }
+            int chestCount = gameField.chests.Count;
+            for (int i = 0; i < 5; i++)
+            {
+                bool finded = true;
+                Chest chest = null;
+                while (finded)
+                {
+                    chest = gameField.chests[random.Next(0, chestCount)];
+                    if (chest.Item != Items.Key)
+                        finded = false;
+                }
+                chest.Item = Items.Key;
+            }
+            foreach (Chest chest in gameField.chests)
+            {
+                int k = 0;
+                if (chest.Item != Items.Key)
+                {
+                    k = random.Next(0, 101);
+                    Items item;
+                    if(k < 35)
+                    {
+                        item = Items.Shield;
+                    }else if(k < 70)
+                    {
+                        item = Items.Coin;
+                    }
+                    else
+                    {
+                        item = Items.Food;
+                    }
+                    chest.Item = item;
+                }
+                    
+            }
+        }
+
         public void AddCubes()
         {
             Loader loader = new Loader(_directX3DGraphics, _directX2DGraphics, _renderer, _directX2DGraphics.ImagingFactory);
@@ -295,7 +411,7 @@ namespace Template
                             Vector3 min = new Vector3((y - 100) * 2, 0.45f, (x - 100) * 2);
                             Vector3 max = new Vector3((y - 100) * 2 + 2, 2.45f, (x - 100) * 2 + 2);
                             BoundingBox box = new BoundingBox(min, max);
-                            Chest chest = new Chest(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\chest.obj", _materials[6]), box);
+                            Chest chest = new Chest(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\chest.obj", _materials[6]), box, device);
                             chest.MoveBy((y - 100) * 2 + 1, 1, (x - 100) * 2 + 1);
                             chest.RotateChestToWall(bmp, x, y);
                             gameField.chests.Add(chest);
@@ -303,6 +419,15 @@ namespace Template
                         case ColorBMP.Green:
                             m = loader.LoadMeshObject("Resources\\Models\\Walls\\wall_block.txt", _materials);
                             m.MoveBy((y - 100) * 2 + 1, 13, (x - 100) * 2 + 1);
+                            break;
+                        case ColorBMP.Red:
+                            min = new Vector3((y - 100) * 2, 0.0f, (x - 100) * 2);
+                            max = new Vector3((y - 100) * 2 + 2, 8f, (x - 100) * 2 + 2);
+                            Zombie zombie = new Zombie(loaderFromObj.LoadMeshesFromObject("Resources\\Models\\zombie.obj", _materials[7]), device);
+                            zombie.MoveBy((y - 100) * 2 + 1, 0, (x - 100) * 2 + 1);
+                            zombie.BoxCollider.Maximum = max;
+                            zombie.BoxCollider.Minimum = min;
+                            gameField.zombies.Add(zombie);
                             break;
                         default:
                             break;
@@ -384,6 +509,7 @@ namespace Template
         /// <summary>Callback for RenderLoop.Run. Handle input and render scene.</summary>
         public void RenderLoopCallback()
         {
+            walk = false;
             if (_firstRun)
             {
                 RenderFormResizedCallback(this, new EventArgs());
@@ -409,9 +535,46 @@ namespace Template
                 if (_inputController.SPressed) _character.MoveForwardBy(-_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.DPressed) _character.MoveRightBy(_timeHelper.DeltaT * _character.Speed);
                 if (_inputController.APressed) _character.MoveRightBy(-_timeHelper.DeltaT * _character.Speed);
-                _character.BoundingsMove(_camera);
+                if(_inputController.WPressed || _inputController.SPressed || _inputController.DPressed || _inputController.APressed)
+                {
+                    walk = true;
+                }
+                _character.BoundingsMove();
                 CollisionWalls();
-
+                CollisionChests();
+                if (targetChest != null && _inputController.EPressed)
+                {
+                    if (targetChest.State == ChestState.Close)
+                    {
+                        targetChest.chestOpenSound.Play();
+                        targetChest.Open();
+                        Vector4 v = (Vector4)((targetChest.BoxCollider.Maximum + targetChest.BoxCollider.Minimum) / 2.0f);
+                        float yawAngle = targetChest.MeshObjects["Cover"].Yaw;
+                        item = items[targetChest.Item];
+                        item.AnimateChest = true;
+                        item.mesh.Position = v;
+                        item.mesh.Yaw = yawAngle;
+                        switch (targetChest.Item)
+                        {
+                            case Items.Coin:
+                                _character.SpeedAttack = 500;
+                                coinCount++;
+                                break;
+                            case Items.Key:
+                                keyCount++;
+                                break;
+                            case Items.Food:
+                                if (_character.Health == 5)
+                                    _character.SpeedAttack = 500;
+                                else
+                                    _character.Health++;
+                                break;
+                            case Items.Shield:
+                                shieldCount = shieldCount == 3 ? 3 : shieldCount + 1;
+                                break;
+                        }
+                    }
+                }
                 if (_inputController.Esc) 
                 {
                     _renderForm.Close();
@@ -425,9 +588,35 @@ namespace Template
                 // Toggle fullscreen mode by F4, F5.
                 if (_inputController.Func[3]) _directX3DGraphics.IsFullScreen = false;
                 if (_inputController.Func[4]) _directX3DGraphics.IsFullScreen = true;
-                if (_inputController.MouseButtons[0]) swordAnim = true;
+                if (_inputController.MouseButtons[0])
+                {
+                    if (!swordAnim)
+                    {
+                        float distance;
+                        bool miss = true;
+                        Zombie zombieToRemove = null;
+                        foreach (Zombie zombie in gameField.zombies)
+                        {
+                            zombie.BoxCollider.Intersects(ref _character.ray, out distance);
+                            if (distance < 20 && distance != 0)
+                            {
+                                zombie.Health--;
+                                zombieToRemove = zombie.Health <= 0 ? zombie : null;
+                                hitZombieSound.Play();
+                                miss = false;
+                            }
+                        }
+                        if (miss)
+                        {
+                            swordMissSound.Play();
+                        }
+                        gameField.zombies.Remove(zombieToRemove);
+                    }
+                    swordAnim = true;
+                    
+                }
             }
-            CollisionChests();
+            
             _viewMatrix = _camera.GetViewMatrix();
             countMeshes = 0;
             _renderer.BeginRender();
@@ -454,10 +643,7 @@ namespace Template
             }
             float time = _timeHelper.Time;
             _renderer.SetPerObjectConstants(time, 0); //1);
-            //worldMatrix = _cube.GetWorldMatrix();
-            //_renderer.UpdatePerObjectConstantBuffer(0, worldMatrix, _viewMatrix, _projectionMatrix);
-            //_cube.Render();
-            //_renderer.SetPerObjectConstants(time, 0);
+            
             _floor.Render(_renderer, _viewMatrix, _projectionMatrix);
             _ceiling.Render(_renderer, _viewMatrix, _projectionMatrix);
 
@@ -482,27 +668,97 @@ namespace Template
             //
             _sword.Roll = _camera.Roll - 1.5f;
             _sword.MoveTo(y, z, x);
-            if(swordAnim)
-                swordAnim = Animations.ImpactBySword(_sword);
-
+            if (swordAnim)
+            {
+                if(_character.SpeedAttack > 0)
+                {
+                    swordAnim = Animations.ImpactBySword(_sword, 2);
+                    _character.SpeedAttack--;
+                }
+                else
+                {
+                    swordAnim = Animations.ImpactBySword(_sword, 1);
+                }
+            }
             _sword.Render(_renderer, _viewMatrix, _projectionMatrix);
 
-            _torch.Position = new Vector4(_character.ray.Position.X, _character.ray.Position.Y, _character.ray.Position.Z, 0);
-            _torch.Render(_renderer, _viewMatrix, _projectionMatrix);
-            _torch1.Render(_renderer, _viewMatrix, _projectionMatrix);
-            _torch2.Render(_renderer, _viewMatrix, _projectionMatrix);
+            float angle = Animations.RotateHearts();
+            DrawHearts(angle);
+            DrawKeys(angle);
+            DrawShields(angle);
+            if (item.AnimateChest)
+            {
+                item.Animate();
+                item.Render(_renderer, _viewMatrix, _projectionMatrix);
+            }
 
-            _zombie.Render(_renderer, _viewMatrix, _projectionMatrix);
-            _zombie.Walk();
-            _zombie.RotateToPlayer(_character);
+            door.Render(_renderer, _viewMatrix, _projectionMatrix);
+            door2.Render(_renderer, _viewMatrix, _projectionMatrix);
+            RenderZombies();
+            RenderTarget();
 
             RenderHUD();
 
             _renderer.EndRender();
+
+            if (walk && !walkIsPlayed)
+            {
+                walkingSound.Play();
+                walkIsPlayed = true;
+            }else if (!walk && walkIsPlayed)
+            {
+                walkingSound.Stop();
+                walkIsPlayed = false;
+            }
+        }
+
+        private void RenderZombies()
+        {
+            float distance = 0;
+            Vector4 v;
+            foreach (Zombie zombie in gameField.zombies)
+            {
+                if (zombie.KickReaload != 0)
+                    zombie.KickReaload--;
+                distance = Collision.DistanceBoxBox(ref _character.BoxCollider, ref zombie.BoxCollider);
+                if (distance < 200)
+                {
+                    zombie.Render(_renderer, _viewMatrix, _projectionMatrix);
+                    if(distance < 50)
+                    {
+                        if (zombie.damage)
+                        {
+                            zombie.damageSound.Play();
+                            zombie.damage = false;
+                        }
+                        v = zombie.GetLeftLeg().Position;
+                        zombie.Walk();
+                        zombie.RotateToPlayer(_character);
+                        foreach (Wall wall in nearestWalls)
+                        {
+                            if (Collision.DistanceBoxBox(ref zombie.BoxCollider, ref wall.BoxCollider) < 0.5f)
+                                zombie.MoveTo(v);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RenderTarget()
+        {
+            Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+            Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
+            viewTo *= 0.6f;
+            target.Position = _character.Position + viewTo;
+            target.Pitch = _camera.Pitch;
+            target.Yaw = _camera.Yaw;
+            target.Roll = _camera.Roll;
+            target.Render(_renderer, _viewMatrix, _projectionMatrix);
         }
 
         private void RenderWalls()
         {
+            nearestWalls.Clear();
             int wallsCount = gameField.GetWallsCount();
             double way;
             for (int i = 0; i < wallsCount; i++)
@@ -514,6 +770,10 @@ namespace Template
                 {
                     countMeshes++;
                     mesh.Render(_renderer, _viewMatrix, _projectionMatrix);
+                    if(way < 80)
+                    {
+                        nearestWalls.Add(wall);
+                    }
                 }
             }
         }
@@ -536,17 +796,112 @@ namespace Template
             double way;
             foreach (Chest chest in gameField.chests)
             {
+                if (chest.State == ChestState.Openning)
+                    chest.Open();
                 way = Collision.DistanceBoxBox(ref chest.BoxCollider, ref _character.BoxCollider);
                 if (way < 8)
                 {
                     float d;
-                    _torch1.Position = new Vector4(chest.BoxCollider.Minimum.X, chest.BoxCollider.Minimum.Y, chest.BoxCollider.Minimum.Z, 0);
-                    _torch2.Position = new Vector4(chest.BoxCollider.Maximum.X, chest.BoxCollider.Maximum.Y, chest.BoxCollider.Maximum.Z, 0);
                     if (chest.BoxCollider.Intersects(ref _character.ray))
                     {
-                        chest.SetOver(_materials);
+                        chest.SetOver(_materials[8]);
+                        targetChest = chest;
+                    }
+                    else if(targetChest == chest)
+                    {
+                        chest.SetOver(_materials[6]);
+                        targetChest = null;
                     }
                 }
+                else if(targetChest == chest && way < 25)
+                {
+                    chest.SetOver(_materials[6]);
+                    targetChest = null;
+                }
+            }
+        }
+
+        private void DrawHearts(float rotateAngle)
+        {
+            float leftBias = 0.0f;
+            for(int i = 0; i < _character.Health; i++)
+            {
+                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+
+                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
+                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
+                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
+                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
+                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
+                viewTo *= 0.6f;
+                viewToNorm *= (0.4f - leftBias);
+                viewToNorm2 *= -0.2f;
+
+                var resultPoint = viewTo + viewToNorm + viewToNorm2;
+
+
+                hearts[i].mesh.Pitch = _camera.Pitch + rotateAngle;
+                hearts[i].mesh.Yaw = _camera.Yaw + rotateAngle;
+                hearts[i].mesh.Roll = _camera.Roll;
+                hearts[i].mesh.Position = _character.Position + resultPoint;
+                hearts[i].Render(_renderer, _viewMatrix, _projectionMatrix);
+                leftBias += 0.06f;
+            }
+        }
+
+        private void DrawKeys(float rotateAngle)
+        {
+            float leftBias = 0.0f;
+            for (int i = 0; i < keyCount; i++)
+            {
+                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+
+                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
+                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
+                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
+                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
+                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
+                viewTo *= 0.6f;
+                viewToNorm *= (-0.4f + leftBias);
+                viewToNorm2 *= -0.2f;
+
+                var resultPoint = viewTo + viewToNorm + viewToNorm2;
+
+
+                keys[i].mesh.Pitch = _camera.Pitch + rotateAngle;
+                keys[i].mesh.Yaw = _camera.Yaw - rotateAngle;
+                keys[i].mesh.Roll = _camera.Roll;
+                keys[i].mesh.Position = _character.Position + resultPoint;
+                keys[i].Render(_renderer, _viewMatrix, _projectionMatrix);
+                leftBias += 0.06f;
+            }
+        }
+
+        private void DrawShields(float rotateAngle)
+        {
+            float leftBias = 0.0f;
+            for (int i = 0; i < shieldCount; i++)
+            {
+                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+
+                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
+                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
+                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
+                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
+                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
+                viewTo *= 0.6f;
+                viewToNorm *= (0.4f - leftBias);
+                viewToNorm2 *= -0.14f;
+
+                var resultPoint = viewTo + viewToNorm + viewToNorm2;
+
+
+                shields[i].mesh.Pitch = _camera.Pitch + rotateAngle;
+                shields[i].mesh.Yaw = _camera.Yaw + rotateAngle;
+                shields[i].mesh.Roll = _camera.Roll;
+                shields[i].mesh.Position = _character.Position + resultPoint;
+                shields[i].Render(_renderer, _viewMatrix, _projectionMatrix);
+                leftBias += 0.06f;
             }
         }
 
@@ -576,7 +931,9 @@ namespace Template
                                 $"MX: {_inputController.MouseRelativePositionX,3:d2} MY: {_inputController.MouseRelativePositionY,3:d2} MZ: {_inputController.MouseRelativePositionZ,4:d3}\n" +
                                 $"LB: {(_inputController.MouseButtons[0] ? 1 : 0)} MB: {(_inputController.MouseButtons[2] ? 1 : 0)} RB: {(_inputController.MouseButtons[1] ? 1 : 0)}\n" +
                                 $"Pos: {_character.Position.X,6:f1}, {_character.Position.Y,6:f1}, {_character.Position.Z,6:f1}\n" +
-                                $"Count of Meshes: {countMeshes,6:f1}";
+                                $"Count of Meshes: {countMeshes,6:f1}\n" +
+                                $"Coin: " + coinCount +
+                                $"Key: " + keyCount;
             if (_displayHelp) text += "\n\n" + _helpString;
             float armorWidthInDIP = -1;//_directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Width;
             float armorHeightInDIP = -1;//_directX2DGraphics.Bitmaps[_HUDResources.armorIconIndex].Size.Height;

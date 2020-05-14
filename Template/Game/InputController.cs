@@ -87,6 +87,9 @@ namespace Template
 
         public bool MPressed { get => _mPressed; }
 
+        private bool _ePressed;
+        public bool EPressed { get => _ePressed; }
+
         /// <summary>W current pressed state.</summary>
         private bool _wPressed;
         /// <summary>W current pressed state.</summary>
@@ -239,6 +242,7 @@ namespace Template
             _sPressed = _keyboardState.IsPressed(Key.S);
             _dPressed = _keyboardState.IsPressed(Key.D);
             _mPressed = _keyboardState.IsPressed(Key.M);
+            _ePressed = _keyboardState.IsPressed(Key.E);
 
             // Space (typicaly jump) - by key down.
             _space = ProcessKeyPressTriggerByKeyDown(Key.Space, ref _spacePreviousPressed, ref _spaceCurrentPressed);

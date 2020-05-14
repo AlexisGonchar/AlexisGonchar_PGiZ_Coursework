@@ -235,28 +235,38 @@ namespace Template
 
         public MeshObject LoadMeshFromObject(string file, Material material)
         {
+            return LoadMeshFromObject(file, material, new Vector3(0, 0, 0));
+        }
+
+        public MeshObject LoadMeshFromObject(string file, Material material, Vector3 bias)
+        {
             LoadResult result = GetResult(file);
             //Group group = result.Groups[0];
             //Console.WriteLine("----------------------------------");
             //Console.WriteLine(result.Vertices.Count);
             //Console.WriteLine(group.Name);
             //Console.WriteLine("----------------------------------");
-            return GetMesh(result, 0, material);
+            return GetMesh(result, 0, material, bias);
         }
 
         public Dictionary<String, MeshObject> LoadMeshesFromObject(string file, Material material)
+        {
+            return LoadMeshesFromObject(file, material, new Vector3(0, 0, 0));
+        }
+
+        public Dictionary<String, MeshObject> LoadMeshesFromObject(string file, Material material, Vector3 bias)
         {
             Dictionary<String, MeshObject> meshObjects = new Dictionary<String, MeshObject>();
             LoadResult result = GetResult(file);
             ((List<Group>)result.Groups).ForEach(el => Console.WriteLine(el.Name));
             for (int groupIndex = 0; groupIndex < result.Groups.Count; groupIndex++)
             {
-                meshObjects.Add(result.Groups[groupIndex].Name, GetMesh(result, groupIndex, material));
+                meshObjects.Add(result.Groups[groupIndex].Name, GetMesh(result, groupIndex, material, bias));
             }
             return meshObjects;
         }
 
-        private MeshObject GetMesh(LoadResult result, int groupIndex, Material material)
+        private MeshObject GetMesh(LoadResult result, int groupIndex, Material material, Vector3 bias)
         {
             Group group = result.Groups[groupIndex];
             int vertexCount = group.Faces.Count;
@@ -270,6 +280,9 @@ namespace Template
                     VertexDataStruct vertex = new VertexDataStruct();
                     int position = group.Faces[index][vertIndex].VertexIndex - 1;
                     vertex.position = GetPosition(result.Vertices[position]);
+                    vertex.position.X += bias.X;
+                    vertex.position.Y += bias.Y;
+                    vertex.position.Z += bias.Z;
                     position = group.Faces[index][vertIndex].NormalIndex - 1;
                     vertex.normal = GetNormal(result.Normals[position]);
                     vertex.color = new Vector4(0.8f, 0.0f, 0.5f, 1.0f);

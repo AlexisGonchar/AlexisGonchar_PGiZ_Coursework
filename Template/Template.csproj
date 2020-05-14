@@ -161,7 +161,10 @@
     <Compile Include="Game\Models\Chest.cs" />
     <Compile Include="Game\ColorDetect.cs" />
     <Compile Include="Game\GameField.cs" />
+    <Compile Include="Game\Models\Coin.cs" />
+    <Compile Include="Game\Models\HUDModel.cs" />
     <Compile Include="Game\Models\IModel.cs" />
+    <Compile Include="Game\Models\ItemChestModel.cs" />
     <Compile Include="Game\Models\Wall.cs" />
     <Compile Include="Game\Models\Zombie.cs" />
     <Compile Include="Graphics\Camera.cs" />
@@ -197,7 +200,6 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.manifest" />
-    <None Include="ClassDiagram.cd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -208,7 +210,16 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Resources\Models\coin.obj" />
+    <None Include="Resources\Models\door.obj" />
+    <None Include="Resources\Models\food.obj" />
+    <None Include="Resources\Models\heart.obj" />
+    <None Include="Resources\Models\keyItem.obj" />
+    <None Include="Resources\Models\point.obj" />
+    <None Include="Resources\Models\shield.obj" />
+    <None Include="Resources\Models\shieldhud.obj" />
     <None Include="Resources\Models\sword.obj" />
+    <None Include="Resources\Models\target.obj" />
     <None Include="Resources\Models\zombie.obj" />
   </ItemGroup>
   <ItemGroup>
@@ -216,14 +227,17 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Audio\bg.wav" />
+    <Content Include="Resources\Audio\chest.wav" />
+    <Content Include="Resources\Audio\damage.wav" />
+    <Content Include="Resources\Audio\hitZombie.wav" />
+    <Content Include="Resources\Audio\miss.wav" />
+    <Content Include="Resources\Audio\walking.wav" />
     <Content Include="Resources\Levels\level_1.bmp" />
     <Content Include="Resources\Levels\level_1_map.bmp" />
     <Content Include="Resources\Models\ceiling.txt" />
-    <Content Include="Resources\Models\chest.txt" />
     <Content Include="Resources\Models\floor.txt" />
     <Content Include="Resources\Models\ghost.txt" />
     <Content Include="Resources\Models\materials.txt" />
-    <Content Include="Resources\Models\sword.txt" />
     <Content Include="Resources\Models\torch.txt" />
     <Content Include="Resources\Models\Walls\wall_block.txt" />
     <Content Include="Resources\Models\Walls\wall_x1.txt" />
@@ -239,8 +253,14 @@
     <Content Include="Resources\Textures\ceiling.png" />
     <Content Include="Resources\Textures\chest.png" />
     <Content Include="Resources\Textures\chest_over.png" />
+    <Content Include="Resources\Textures\coin.png" />
+    <Content Include="Resources\Textures\door.png" />
     <Content Include="Resources\Textures\floor.png" />
+    <Content Include="Resources\Textures\food.png" />
+    <Content Include="Resources\Textures\heart.png" />
+    <Content Include="Resources\Textures\shield.png" />
     <Content Include="Resources\Textures\sword.png" />
+    <Content Include="Resources\Textures\target.png" />
     <Content Include="Resources\Textures\torch.png" />
     <Content Include="Resources\Textures\wall.png" />
     <Content Include="Resources\Textures\zombie.png" />

@@ -1,4 +1,5 @@
 ﻿using SharpDX;
+using SharpHelper.Audio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +9,38 @@ using Template.Graphics;
 
 namespace Template
 {
+
+    public enum ChestState
+    {
+        Close,
+        Openning,
+        Open
+    }
+
+    public enum Items
+    {
+        Coin,
+        Food,
+        Shield,
+        Key,
+        None
+    }
+
     public class Chest : IModel
     {
         public Dictionary<String, MeshObject> MeshObjects;
         public BoundingBox BoxCollider;
-        public bool IsOpen;
+        public ChestState State;
+        public Items Item;
+        public SharpAudioVoice chestOpenSound;
 
-        public Chest(Dictionary<String, MeshObject> meshes, BoundingBox box)
+        public Chest(Dictionary<String, MeshObject> meshes, BoundingBox box, SharpAudioDevice device)
         {
             MeshObjects = meshes;
             BoxCollider = box;
             ChestUp();
+            State = ChestState.Close;
+            chestOpenSound = new SharpAudioVoice(device, "Resources\\Audio\\chest.wav");
         }
 
         private void ChestUp()
@@ -80,12 +102,17 @@ namespace Template
             }
         }
 
-        public void SetOver(Materials materials)
+        public void SetOver(Material material)
         {
             foreach (MeshObject meshObject in MeshObjects.Values)
             {
-                meshObject._material = materials[8];
+                meshObject._material = material;
             }
+        }
+        
+        public void Open()
+        {
+            State = Animations.OpenChest(this);
         }
     }
 }
