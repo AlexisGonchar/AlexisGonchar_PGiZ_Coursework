@@ -157,6 +157,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameState.cs" />
     <Compile Include="Game\Animations.cs" />
     <Compile Include="Game\Models\Chest.cs" />
     <Compile Include="Game\ColorDetect.cs" />
@@ -182,6 +183,12 @@
     <Compile Include="Graphics\Texture.cs" />
     <Compile Include="Game\InputController.cs" />
     <Compile Include="Graphics\Textures.cs" />
+    <Compile Include="Launcher.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Launcher.Designer.cs">
+      <DependentUpon>Launcher.cs</DependentUpon>
+    </Compile>
     <Compile Include="Resources\Loader.cs" />
     <Compile Include="Graphics\MeshObject.cs" />
     <Compile Include="Game\TimeHelper.cs" />
@@ -189,6 +196,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Renderer.cs" />
     <Compile Include="Resources\LoaderFromObj.cs" />
+    <EmbeddedResource Include="Launcher.resx">
+      <DependentUpon>Launcher.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -250,6 +260,7 @@
     <Content Include="Resources\Models\Walls\wall_x7.txt" />
     <Content Include="Resources\Models\Walls\wall_x8.txt" />
     <Content Include="Resources\Models\Walls\wall_x9.txt" />
+    <None Include="Resources\Pictures\bg.png" />
     <Content Include="Resources\Textures\ceiling.png" />
     <Content Include="Resources\Textures\chest.png" />
     <Content Include="Resources\Textures\chest_over.png" />

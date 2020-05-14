@@ -16,6 +16,7 @@ namespace Template
         public Ray ray;
         public int SpeedAttack = 0;
         public int Health = 5;
+        public int Shields = 0;
         /// <summary>Speed of character movements.</summary>
         private float _speed;
         /// <summary>Speed of character movements.</summary>

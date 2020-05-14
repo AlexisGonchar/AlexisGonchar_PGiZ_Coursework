@@ -143,8 +143,8 @@ namespace Template
 
         int coinCount = 0;
         int keyCount = 0;
-        int shieldCount = 0;
 
+        GameState gameState;
 
         /// <summary>First run flag for create DirectX buffers before render in first time.</summary>
         private bool _firstRun = true;
@@ -163,8 +163,9 @@ namespace Template
         /// <summary>
         /// Constructor. Initialize all objects.
         /// </summary>
-        public Game()
+        public Game(GameState gameState)
         {
+            this.gameState = gameState;
             random = new Random();
             //_gameState = GameState.BeforeStart;
             _helpString = Resources.HelpString;
@@ -570,13 +571,14 @@ namespace Template
                                     _character.Health++;
                                 break;
                             case Items.Shield:
-                                shieldCount = shieldCount == 3 ? 3 : shieldCount + 1;
+                                _character.Shields = _character.Shields == 3 ? 3 : _character.Shields + 1;
                                 break;
                         }
                     }
                 }
                 if (_inputController.Esc) 
                 {
+                    gameState.state = GameStateEnum.Exit;
                     _renderForm.Close();
                     voice.Stop();
                 }
@@ -617,6 +619,13 @@ namespace Template
                 }
             }
             
+            if(_character.Health <= 0)
+            {
+                gameState.state = GameStateEnum.GameOver;
+                _renderForm.Close();
+                voice.Stop();
+            }
+
             _viewMatrix = _camera.GetViewMatrix();
             countMeshes = 0;
             _renderer.BeginRender();
@@ -682,10 +691,7 @@ namespace Template
             }
             _sword.Render(_renderer, _viewMatrix, _projectionMatrix);
 
-            float angle = Animations.RotateHearts();
-            DrawHearts(angle);
-            DrawKeys(angle);
-            DrawShields(angle);
+            
             if (item.AnimateChest)
             {
                 item.Animate();
@@ -697,6 +703,7 @@ namespace Template
             RenderZombies();
             RenderTarget();
 
+            Render3DHUD();
             RenderHUD();
 
             _renderer.EndRender();
@@ -821,24 +828,31 @@ namespace Template
             }
         }
 
-        private void DrawHearts(float rotateAngle)
+
+        private void Render3DHUD()
         {
+            Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+            Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
+            Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
+            Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
+            Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
+            Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
+            float angle = Animations.RotateHearts();
+            DrawHearts(angle, viewTo, viewToNorm, viewToNorm2);
+            DrawKeys(angle, viewTo, viewToNorm, viewToNorm2);
+            DrawShields(angle, viewTo, viewToNorm, viewToNorm2);
+        }
+        private void DrawHearts(float rotateAngle, Vector4 viewTo, Vector4 viewUp, Vector4 viewSide)
+        {
+            Vector4 v1, v2, v3;
             float leftBias = 0.0f;
             for(int i = 0; i < _character.Health; i++)
             {
-                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+                v1 = viewTo * 0.6f;
+                v2 = viewUp * (0.4f - leftBias);
+                v3 = viewSide * -0.2f;
 
-                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
-                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
-                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
-                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
-                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
-                viewTo *= 0.6f;
-                viewToNorm *= (0.4f - leftBias);
-                viewToNorm2 *= -0.2f;
-
-                var resultPoint = viewTo + viewToNorm + viewToNorm2;
-
+                var resultPoint = v1 + v2 + v3;
 
                 hearts[i].mesh.Pitch = _camera.Pitch + rotateAngle;
                 hearts[i].mesh.Yaw = _camera.Yaw + rotateAngle;
@@ -849,24 +863,17 @@ namespace Template
             }
         }
 
-        private void DrawKeys(float rotateAngle)
+        private void DrawKeys(float rotateAngle, Vector4 viewTo, Vector4 viewUp, Vector4 viewSide)
         {
+            Vector4 v1, v2, v3;
             float leftBias = 0.0f;
             for (int i = 0; i < keyCount; i++)
             {
-                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+                v1 = viewTo * 0.6f;
+                v2 = viewUp * (-0.4f + leftBias);
+                v3 = viewSide * -0.2f;
 
-                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
-                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
-                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
-                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
-                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
-                viewTo *= 0.6f;
-                viewToNorm *= (-0.4f + leftBias);
-                viewToNorm2 *= -0.2f;
-
-                var resultPoint = viewTo + viewToNorm + viewToNorm2;
-
+                var resultPoint = v1 + v2 + v3;
 
                 keys[i].mesh.Pitch = _camera.Pitch + rotateAngle;
                 keys[i].mesh.Yaw = _camera.Yaw - rotateAngle;
@@ -877,24 +884,17 @@ namespace Template
             }
         }
 
-        private void DrawShields(float rotateAngle)
+        private void DrawShields(float rotateAngle, Vector4 viewTo, Vector4 viewUp, Vector4 viewSide)
         {
+            Vector4 v1, v2, v3;
             float leftBias = 0.0f;
-            for (int i = 0; i < shieldCount; i++)
+            for (int i = 0; i < _character.Shields; i++)
             {
-                Matrix rotation = Matrix.RotationYawPitchRoll(_character._yaw, _character._pitch, _character._roll);
+                v1 = viewTo * 0.6f;
+                v2 = viewUp * (0.4f - leftBias);
+                v3 = viewSide * -0.14f;
 
-                Vector4 viewTo = Vector4.Transform(-Vector4.UnitZ, rotation);
-                Vector4 viewUp = Vector4.Transform(Vector4.UnitY, rotation);
-                Vector4 viewSide = Vector4.Transform(Vector4.UnitX, rotation);
-                Vector4 viewToNorm = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewUp, -(float)Math.PI / 2));
-                Vector4 viewToNorm2 = Vector4.Transform(viewTo, Matrix.RotationAxis((Vector3)viewSide, (float)Math.PI / 2));
-                viewTo *= 0.6f;
-                viewToNorm *= (0.4f - leftBias);
-                viewToNorm2 *= -0.14f;
-
-                var resultPoint = viewTo + viewToNorm + viewToNorm2;
-
+                var resultPoint = v1 + v2 + v3;
 
                 shields[i].mesh.Pitch = _camera.Pitch + rotateAngle;
                 shields[i].mesh.Yaw = _camera.Yaw + rotateAngle;

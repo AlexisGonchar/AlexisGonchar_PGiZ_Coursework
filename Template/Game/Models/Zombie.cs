@@ -59,7 +59,10 @@ namespace Template
             {
                 if(KickReaload == 0)
                 {
-                    c.Health--;
+                    if (c.Shields != 0)
+                        c.Shields--;
+                    else
+                        c.Health--;
                     KickReaload = 50;
                     damage = true;
                 }

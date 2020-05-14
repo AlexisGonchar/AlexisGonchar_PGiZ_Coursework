@@ -14,9 +14,9 @@ namespace Template
         [STAThread]
         static void Main()
         {
-            Game game = new Game();
-            game.Run();
-            game.Dispose();
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Launcher());
         }
     }
 }
