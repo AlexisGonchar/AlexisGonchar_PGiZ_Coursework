@@ -13,6 +13,7 @@ namespace Template
         public int Health;
         public SharpAudioVoice damageSound;
         public bool damage;
+        public SharpAudioVoice deathSound;
 
         public int KickReaload = 0;
 
@@ -24,6 +25,7 @@ namespace Template
             KickReaload = 0;
             BoxCollider = new BoundingBox();
             damageSound = new SharpAudioVoice(device, "Resources\\Audio\\damage.wav");
+            deathSound = new SharpAudioVoice(device, "Resources\\Audio\\deathZombie.wav");
         }
 
         private void ZombieUp()

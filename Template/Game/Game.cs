@@ -115,7 +115,7 @@ namespace Template
         MeshObject target;
         Dictionary<Items, ItemChestModel> items;
         ItemChestModel item;
-        MeshObject door, door2;
+        Doors doors;
         List<Wall> nearestWalls;
 
         /// <summary>Projection matrix.</summary>
@@ -237,11 +237,7 @@ namespace Template
                 shields[i] = new HUDModel(loaderFromObj.LoadMeshFromObject("Resources\\Models\\shieldhud.obj", _materials[15]));
             }
             AddItemsModelInDictionary(loaderFromObj);
-            door = loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]);
-            door.MoveBy(0, 6f, 0);
-            door2 = loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]);
-            door2.MoveBy(6, 6f, 0);
-            door2.Yaw = (float)Math.PI;
+            
             target = loaderFromObj.LoadMeshFromObject("Resources\\Models\\target.obj", _materials[13]);
             // 6. Load HUD resources into DirectX 2D object.
             InitHUDResources();
@@ -266,7 +262,7 @@ namespace Template
             voice.Stopped += OnStop;
 
             voice.Play();
-            
+            _directX3DGraphics.IsFullScreen = true;
         }
 
         private void AddItemsModelInDictionary(LoaderFromObj loaderFromObj)
@@ -429,6 +425,15 @@ namespace Template
                             zombie.BoxCollider.Maximum = max;
                             zombie.BoxCollider.Minimum = min;
                             gameField.zombies.Add(zombie);
+                            break;
+                        case ColorBMP.Blue:
+                            doors = new Doors(loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]),
+                                              loaderFromObj.LoadMeshFromObject("Resources\\Models\\door.obj", _materials[14]));
+                            doors.MoveBy((y - 100) * 2 + 1f, 6f, (x - 100) * 2 + 1);
+                            min = new Vector3((y - 100) * 2, 0.0f, (x - 100) * 2);
+                            max = new Vector3((y - 100) * 2 + 10, 8f, (x - 100) * 2 + 2);
+                            doors.BoxCollider.Maximum = max;
+                            doors.BoxCollider.Minimum = min;
                             break;
                         default:
                             break;
@@ -612,7 +617,11 @@ namespace Template
                         {
                             swordMissSound.Play();
                         }
-                        gameField.zombies.Remove(zombieToRemove);
+                        if(zombieToRemove != null)
+                        {
+                            zombieToRemove.deathSound.Play();
+                            gameField.zombies.Remove(zombieToRemove);
+                        }
                     }
                     swordAnim = true;
                     
@@ -698,8 +707,19 @@ namespace Template
                 item.Render(_renderer, _viewMatrix, _projectionMatrix);
             }
 
-            door.Render(_renderer, _viewMatrix, _projectionMatrix);
-            door2.Render(_renderer, _viewMatrix, _projectionMatrix);
+
+            if(Collision.DistanceBoxBox(ref _character.BoxCollider, ref doors.BoxCollider) < 20)
+            {
+                if (doors.CharacterCollision(_character) && keyCount == 5)
+                {
+                    gameState.state = GameStateEnum.Win;
+                    _renderForm.Close();
+                    voice.Stop();
+                }
+            }
+            doors.Render(_renderer, _viewMatrix, _projectionMatrix);
+
+
             RenderZombies();
             RenderTarget();
 
@@ -970,6 +990,7 @@ namespace Template
             _directX3DGraphics.Dispose();
             _renderForm.Dispose();
             voice.Dispose();
+            walkingSound.Dispose();
         }
     }
 }

@@ -39,5 +39,10 @@ namespace Template
                 pictureBox1.BackgroundImageLayout = ImageLayout.Stretch;
             }
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }

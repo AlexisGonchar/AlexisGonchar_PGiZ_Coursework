@@ -163,6 +163,7 @@
     <Compile Include="Game\ColorDetect.cs" />
     <Compile Include="Game\GameField.cs" />
     <Compile Include="Game\Models\Coin.cs" />
+    <Compile Include="Game\Models\Doors.cs" />
     <Compile Include="Game\Models\HUDModel.cs" />
     <Compile Include="Game\Models\IModel.cs" />
     <Compile Include="Game\Models\ItemChestModel.cs" />
@@ -239,6 +240,7 @@
     <Content Include="Resources\Audio\bg.wav" />
     <Content Include="Resources\Audio\chest.wav" />
     <Content Include="Resources\Audio\damage.wav" />
+    <Content Include="Resources\Audio\deathZombie.wav" />
     <Content Include="Resources\Audio\hitZombie.wav" />
     <Content Include="Resources\Audio\miss.wav" />
     <Content Include="Resources\Audio\walking.wav" />
